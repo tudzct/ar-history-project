@@ -1,0 +1,9 @@
+.env
+.env.*
+application-local.yml
+application-local.properties
+node_modules/
+build/
+dist/
+.idea/
+.DS_Store
