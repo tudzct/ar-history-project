@@ -1,9 +1,11 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class ARTapController : MonoBehaviour
 {
     public Camera arCamera;
     public BattlePopupManager popupManager;
+    public PopupAutoCloseWhenPointLost autoCloseManager;
 
     void Update()
     {
@@ -12,6 +14,13 @@ public class ARTapController : MonoBehaviour
         Touch touch = Input.GetTouch(0);
 
         if (touch.phase != TouchPhase.Began) return;
+
+        // Nếu đang bấm vào UI như popup, video, description, close button
+        // thì không raycast xuống AR point nữa.
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(touch.fingerId))
+        {
+            return;
+        }
 
         if (arCamera == null)
         {
@@ -34,7 +43,13 @@ public class ARTapController : MonoBehaviour
             if (point != null)
             {
                 Debug.Log("Tapped battle point: " + point.battleName);
-                popupManager.Open(point);
+
+                popupManager.ShowPopup(point);
+
+                if (autoCloseManager != null)
+                {
+                    autoCloseManager.OpenPopupForPoint(point.transform);
+                }
             }
         }
     }

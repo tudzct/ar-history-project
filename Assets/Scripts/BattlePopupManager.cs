@@ -1,58 +1,100 @@
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Video;
 using TMPro;
+using UnityEngine.UI;
 
 public class BattlePopupManager : MonoBehaviour
 {
+    [Header("UI")]
     public GameObject popupPanel;
-    public TextMeshProUGUI titleText;
-    public TextMeshProUGUI descriptionText;
-    public Button closeButton;
+    public TMP_Text titleText;
+    public TMP_Text descriptionText;
+    public ScrollRect descriptionScrollRect;
+    public RectTransform descriptionContent;
+    public RectTransform descriptionTextRect;
 
     [Header("Video")]
     public VideoPlayer videoPlayer;
-    public GameObject videoScreen;
 
-    private void Start()
+    private BattlePoint currentPoint;
+
+    public void ShowPopup(BattlePoint point)
     {
-        popupPanel.SetActive(false);
-        closeButton.onClick.AddListener(Close);
-    }
+        if (point == null)
+            return;
 
-    public void Open(BattlePoint point)
-    {
-        titleText.text = point.battleName;
-        descriptionText.text = point.description;
+        if (popupPanel != null)
+            popupPanel.SetActive(true);
 
-        popupPanel.SetActive(true);
+        if (titleText != null)
+            titleText.text = point.battleName;
 
-        if (point.videoClip != null)
+        string desc = string.IsNullOrWhiteSpace(point.description)
+            ? "(Chưa có mô tả)"
+            : point.description;
+
+        Debug.Log("Popup description length = " + desc.Length);
+
+        if (descriptionText != null)
         {
-            videoScreen.SetActive(true);
+            descriptionText.text = desc;
+            descriptionText.enableWordWrapping = true;
+            descriptionText.overflowMode = TextOverflowModes.Overflow;
+            descriptionText.ForceMeshUpdate();
 
-            videoPlayer.Stop();
-            videoPlayer.clip = point.videoClip;
-            videoPlayer.time = 0;
+            Canvas.ForceUpdateCanvases();
 
-            videoPlayer.Prepare();
-            videoPlayer.prepareCompleted += OnVideoPrepared;
+            float viewportHeight = 200f;
+
+            if (descriptionScrollRect != null && descriptionScrollRect.viewport != null)
+                viewportHeight = descriptionScrollRect.viewport.rect.height;
+
+            float preferredHeight = Mathf.Max(descriptionText.preferredHeight + 40f, viewportHeight + 10f);
+
+            if (descriptionContent != null)
+            {
+                descriptionContent.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredHeight);
+            }
+
+            if (descriptionTextRect != null)
+            {
+                descriptionTextRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredHeight);
+            }
+
+            Canvas.ForceUpdateCanvases();
+
+            if (descriptionScrollRect != null)
+                descriptionScrollRect.verticalNormalizedPosition = 1f;
         }
         else
         {
-            videoScreen.SetActive(false);
+            Debug.LogWarning("DescriptionText chưa được gán trong BattlePopupManager.");
         }
+
+        if (videoPlayer != null && point.videoClip != null)
+        {
+            if (currentPoint != point || videoPlayer.clip != point.videoClip)
+            {
+                videoPlayer.Stop();
+                videoPlayer.clip = point.videoClip;
+                videoPlayer.Play();
+            }
+        }
+
+        currentPoint = point;
     }
 
-    private void OnVideoPrepared(VideoPlayer source)
+    public void ClosePopup()
     {
-        videoPlayer.prepareCompleted -= OnVideoPrepared;
-        videoPlayer.Play();
-    }
+        currentPoint = null;
 
-    public void Close()
-    {
-        videoPlayer.Stop();
-        popupPanel.SetActive(false);
+        if (videoPlayer != null)
+        {
+            videoPlayer.Stop();
+            videoPlayer.clip = null;
+        }
+
+        if (popupPanel != null)
+            popupPanel.SetActive(false);
     }
 }
