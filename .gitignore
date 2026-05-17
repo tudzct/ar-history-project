@@ -7,3 +7,14 @@ build/
 dist/
 .idea/
 .DS_Store
+# Unity generated folders
+[Ll]ibrary/
+[Bb]uild/
+[Bb]uilds/
+[Tt]emp/
+[Oo]bj/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+
+# macOS
+.DS_Store
