@@ -1,0 +1,9 @@
+node_modules/
+dist/
+dist-ssr/
+.env
+*.log
+*.mp4
+*.zip
+*.rar
+*.7z
