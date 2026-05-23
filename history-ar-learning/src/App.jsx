@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PlayCircle,
@@ -18,6 +18,7 @@ import {
   Lock,
   ArrowLeft,
 } from "lucide-react";
+import MapImageARScene from "./MapImageARScene.jsx";
 
 const courses = [
   {
@@ -493,19 +494,13 @@ function ARPanel() {
       <div className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-slate-400">Simulation Placeholder</p>
+            <p className="text-sm text-slate-400">MindAR Image Tracking</p>
             <h3 className="text-2xl font-black">Điện Biên Phủ 3D Map</h3>
           </div>
           <Target className="h-8 w-8 text-amber-300" />
         </div>
-        <div className="mt-6 h-96 rounded-[1.5rem] bg-[conic-gradient(from_180deg_at_50%_50%,_#0f172a,_#334155,_#f59e0b,_#0f172a)] p-4">
-          <div className="relative h-full rounded-[1.25rem] bg-slate-950/80 p-4">
-            <div className="absolute left-[42%] top-[35%] h-28 w-28 rounded-full border-4 border-orange-400/80 bg-orange-400/10" />
-            <div className="absolute left-[22%] top-[18%] rounded-2xl bg-white/10 px-3 py-2 text-xs font-bold">Đồi A1</div>
-            <div className="absolute bottom-[18%] right-[18%] rounded-2xl bg-emerald-400 px-3 py-2 text-xs font-bold text-slate-950">Đường kéo pháo</div>
-            <div className="absolute bottom-[35%] left-[12%] h-1 w-52 rotate-[-18deg] rounded-full bg-emerald-400" />
-            <div className="absolute right-[18%] top-[24%] h-1 w-40 rotate-[28deg] rounded-full bg-amber-300" />
-          </div>
+        <div className="mt-6">
+          <MapImageARScene />
         </div>
       </div>
     </div>
