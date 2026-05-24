@@ -19,6 +19,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import MapImageARScene from "./MapImageARScene.jsx";
+import TimelineEditor from "./TimelineEditor.jsx";
 
 const courses = [
   {
@@ -515,6 +516,7 @@ function LessonView({ onBack }) {
     ["timeline", "Timeline", Clock3],
     ["quiz", "Quiz", Brain],
     ["ar", "AR", Boxes],
+    ["ar-editor", "AR Editor", Layers3],
   ];
 
   return (
@@ -609,6 +611,7 @@ function LessonView({ onBack }) {
               {tab === "timeline" ? <TimelinePanel /> : null}
               {tab === "quiz" ? <QuizPanel /> : null}
               {tab === "ar" ? <ARPanel /> : null}
+              {tab === "ar-editor" ? <TimelineEditor /> : null}
             </motion.div>
           </AnimatePresence>
         </main>

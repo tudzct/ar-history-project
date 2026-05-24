@@ -1,0 +1,86 @@
+{
+  "calibration": {
+    "offsetX": 0,
+    "offsetY": 0,
+    "scaleX": 1,
+    "scaleY": 1
+  },
+  "markers": [
+    {
+      "markerScale": 0.4,
+      "videoPath": "",
+      "id": "him-lam",
+      "label": "Him Lam",
+      "x": 41.9,
+      "y": 59.6,
+      "color": "#ef4444"
+    },
+    {
+      "markerScale": 0.4,
+      "videoPath": "",
+      "id": "muong-thanh",
+      "label": "Muong Thanh",
+      "x": 26,
+      "y": 72.8,
+      "color": "#f59e0b"
+    },
+    {
+      "markerScale": 0.4,
+      "videoPath": "",
+      "id": "tan-thanh",
+      "label": "Tan Thanh",
+      "x": 28.9,
+      "y": 64.5,
+      "color": "#8b5cf6"
+    },
+    {
+      "markerScale": 0.5,
+      "videoPath": "",
+      "id": "thanh-minh",
+      "label": "Thanh Minh",
+      "x": 63.7,
+      "y": 33.9,
+      "color": "#22c55e"
+    },
+    {
+      "markerScale": 0.4,
+      "videoPath": "",
+      "id": "ta-leng",
+      "label": "Ta Leng",
+      "x": 80.9,
+      "y": 75.6,
+      "color": "#38bdf8"
+    }
+  ],
+  "timeline": [
+    {
+      "id": "after-him-lam",
+      "title": "Dan tiep sau khi tat tran Him Lam",
+      "audioPath": "\"D:\\ghichep_monhoc\\Ky2_nam3\\CDKHMT\\0523.MP3\"",
+      "narration": "Phat sau khi nguoi dung dong cua so tran Him Lam, dan sang moc tiep theo.",
+      "autoPlayAfterStart": false,
+      "waitForPointClose": "him-lam",
+      "actions": [
+        {
+          "position": "75.5,72.0",
+          "rotation": -88.9,
+          "rotationX": -84,
+          "rotationY": 37,
+          "rotationZ": -88.9,
+          "scale": 0.81,
+          "id": "action-1779608197009-259",
+          "type": "airplane",
+          "at": 2.3,
+          "duration": 27.7,
+          "pointId": "tan-thanh",
+          "label": "Hieu ung moi",
+          "color": "#ef4444",
+          "assetPath": "",
+          "from": "78.7,81.8",
+          "to": "25.9,25.0"
+        }
+      ],
+      "duration": 0.5
+    }
+  ]
+}
