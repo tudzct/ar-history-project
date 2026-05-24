@@ -256,6 +256,8 @@ function hotspotMarkup(point) {
   const title = point.title || point.label || point.id;
   const markerAsset = mediaPathToUrl(point.markerAssetPath || DEFAULT_MARKER_ASSET);
   const markerScale = Number(point.markerScale || 1);
+  const ringInnerRadius = 0.028 * markerScale;
+  const ringOuterRadius = 0.038 * markerScale;
   const modelScale = 0.035 * markerScale;
   const hitRadius = 0.06 * Math.max(1, markerScale);
   return `
@@ -270,8 +272,8 @@ function hotspotMarkup(point) {
       <a-ring
         class="hotspot"
         data-point="${point.id}"
-        radius-inner="0.028"
-        radius-outer="0.038"
+        radius-inner="${ringInnerRadius.toFixed(3)}"
+        radius-outer="${ringOuterRadius.toFixed(3)}"
         position="0 0 0.004"
         color="${color}"
         opacity="0.8"

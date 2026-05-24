@@ -50,7 +50,7 @@ export default defineConfig({
       ignored: ["**/public/ar-config/ar-timeline-config.json"],
     },
     fs: {
-      allow: ["D:/ghichep_monhoc/Ky2_nam3/CDKHMT"],
+      allow: [process.cwd(), "D:/ghichep_monhoc/Ky2_nam3/CDKHMT"],
     },
   },
 });
