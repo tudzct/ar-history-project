@@ -11,8 +11,8 @@
       "videoPath": "",
       "id": "him-lam",
       "label": "Him Lam",
-      "x": 30.9,
-      "y": 62.6,
+      "x": 38.9,
+      "y": 58.6,
       "color": "#ef4444"
     },
     {
@@ -20,8 +20,8 @@
       "videoPath": "",
       "id": "muong-thanh",
       "label": "Muong Thanh",
-      "x": 21.8,
-      "y": 78.8,
+      "x": 25.8,
+      "y": 77.8,
       "color": "#f59e0b"
     },
     {
@@ -29,8 +29,8 @@
       "videoPath": "",
       "id": "tan-thanh",
       "label": "Tan Thanh",
-      "x": 23.9,
-      "y": 70.5,
+      "x": 25.9,
+      "y": 69.5,
       "color": "#8b5cf6"
     },
     {
@@ -38,8 +38,8 @@
       "videoPath": "",
       "id": "thanh-minh",
       "label": "Thanh Minh",
-      "x": 50.7,
-      "y": 48.9,
+      "x": 60.7,
+      "y": 38.9,
       "color": "#22c55e"
     },
     {
@@ -47,7 +47,7 @@
       "videoPath": "",
       "id": "ta-leng",
       "label": "Ta Leng",
-      "x": 54.9,
+      "x": 67.9,
       "y": 75.6,
       "color": "#38bdf8"
     }

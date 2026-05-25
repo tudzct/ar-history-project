@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const TARGET_IMAGE = "/ar-targets/dien_bien_phu_map.jpg";
 const TARGET_MIND = "/ar-targets/dien_bien_phu_map.mind";
@@ -21,6 +21,20 @@ const defaultAssetByType = {
   "show-label": "/ar-assets/flag-marker.glb",
 };
 const DEFAULT_MARKER_ASSET = "/ar-assets/flag-marker.glb";
+const SECURE_CAMERA_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
+
+const weaponModels = [
+  {
+    id: "mosin-nagant",
+    label: "Mosin Nagant",
+    detail: "Sung truong then khoa, phu hop xem nhu hien vat vu khi trong lop AR.",
+  },
+  {
+    id: "rifle-round",
+    label: "Dan 7.62",
+    detail: "Vien dan minh hoa ty le nho de giai thich cau tao va boi canh vu khi.",
+  },
+];
 
 const pointVideos = {
   "him-lam": {
@@ -93,7 +107,6 @@ const fallbackPoints = [
 ];
 
 let scriptPromise;
-let targetPromise;
 
 function escapeAttr(value = "") {
   return String(value).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
@@ -104,6 +117,21 @@ function mediaPathToUrl(filePath = "") {
   if (!cleanPath) return "";
   if (cleanPath.startsWith("/") || cleanPath.startsWith("http")) return cleanPath;
   return `/@fs/${encodeURI(cleanPath.replaceAll("\\", "/"))}`;
+}
+
+function cameraSecurityIssue() {
+  if (typeof window === "undefined") return "";
+  if (window.isSecureContext || SECURE_CAMERA_HOSTS.has(window.location.hostname)) return "";
+
+  return `Camera bi chan vi trang dang chay bang ${window.location.protocol}//${window.location.host}. Hay chay npm run dev:https va mo lai bang HTTPS.`;
+}
+
+function cameraSupportIssue() {
+  if (typeof navigator === "undefined") return "";
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return "Trinh duyet nay khong ho tro getUserMedia. Hay mo bang Safari hoac Chrome moi nhat.";
+  }
+  return "";
 }
 
 async function loadArConfig() {
@@ -141,46 +169,6 @@ function loadMindARScripts() {
     scriptPromise = scripts.reduce((chain, src) => chain.then(() => loadScript(src)), Promise.resolve());
   }
   return scriptPromise;
-}
-
-function loadImage(src) {
-  return new Promise((resolve, reject) => {
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error("Cannot load target image"));
-    image.src = src;
-  });
-}
-
-async function compileTarget(setLoading) {
-  if (targetPromise) return targetPromise;
-
-  targetPromise = (async () => {
-    const Compiler = window.MINDAR?.Compiler || window.MINDAR?.IMAGE?.Compiler;
-    if (!Compiler) {
-      const keys = window.MINDAR ? Object.keys(window.MINDAR).join(", ") : "no MINDAR global";
-      throw new Error(`MindAR compiler is not ready (${keys})`);
-    }
-
-    setLoading({ active: true, title: "Chuan bi ban do", note: "Dang tao target AR lan dau", progress: 20 });
-    const image = await loadImage(TARGET_IMAGE);
-    const compiler = new Compiler();
-    await compiler.compileImageTargets([image], (progress) => {
-      setLoading({
-        active: true,
-        title: "Dang nap ban do",
-        note: "Lan dau co the mat vai giay",
-        progress: Math.max(25, Math.round(progress * 100)),
-      });
-    });
-    setLoading({ active: true, title: "Hoan tat target", note: "Dang khoi tao camera", progress: 96 });
-    const buffer = await compiler.exportData();
-    const blob = new Blob([buffer], { type: "application/octet-stream" });
-    return URL.createObjectURL(blob);
-  })();
-
-  return targetPromise;
 }
 
 function pixelToAR([x, y], offset = [0, 0], z = 0) {
@@ -385,11 +373,40 @@ function flattenActions(timeline) {
   );
 }
 
+function weaponViewerMarkup() {
+  return `
+    <a-entity
+      id="weapon-viewer"
+      visible="false"
+      position="0 -0.08 0.08"
+      rotation="0 0 0"
+      scale="0.48 0.48 0.48"
+    >
+      <a-entity id="weapon-model-mosin-nagant" class="weapon-model" data-weapon-id="mosin-nagant" visible="true">
+        <a-cylinder radius="0.006" height="0.7" position="0.12 0 0.035" rotation="0 0 90" color="#171923"></a-cylinder>
+        <a-cylinder radius="0.009" height="0.16" position="-0.29 0 0.035" rotation="0 0 90" color="#262b35"></a-cylinder>
+        <a-box width="0.36" height="0.038" depth="0.03" position="-0.08 -0.004 0.012" color="#74451f"></a-box>
+        <a-box width="0.2" height="0.052" depth="0.035" position="-0.29 -0.022 0.01" rotation="0 0 -13" color="#5b351b"></a-box>
+        <a-box width="0.1" height="0.026" depth="0.028" position="-0.005 -0.045 0.018" color="#111827"></a-box>
+        <a-cylinder radius="0.0035" height="0.09" position="-0.055 -0.055 0.032" rotation="0 0 90" color="#0f172a"></a-cylinder>
+        <a-box width="0.06" height="0.01" depth="0.012" position="0.26 0.018 0.043" color="#111827"></a-box>
+        <a-ring radius-inner="0.02" radius-outer="0.026" position="-0.09 -0.05 0.033" rotation="90 0 0" color="#111827"></a-ring>
+      </a-entity>
+
+      <a-entity id="weapon-model-rifle-round" class="weapon-model" data-weapon-id="rifle-round" visible="false" scale="0.8 0.8 0.8">
+        <a-cylinder radius="0.025" height="0.26" position="0 0 0.02" rotation="0 0 90" color="#b45309"></a-cylinder>
+        <a-cone radius-bottom="0.025" radius-top="0.002" height="0.09" position="0.175 0 0.02" rotation="0 0 -90" color="#d1d5db"></a-cone>
+        <a-cylinder radius="0.026" height="0.02" position="-0.14 0 0.02" rotation="0 0 90" color="#92400e"></a-cylinder>
+      </a-entity>
+    </a-entity>
+  `;
+}
+
 function buildScene(targetUrl, config) {
   const actions = flattenActions(config.timeline);
   return `
     <a-scene
-      mindar-image="imageTargetSrc: ${targetUrl}; autoStart: true; uiScanning: yes; uiLoading: yes; filterMinCF: 0.12; filterBeta: 80; warmupTolerance: 3; missTolerance: 8"
+      mindar-image="imageTargetSrc: ${targetUrl}; autoStart: true; uiScanning: yes; uiLoading: yes; filterMinCF: 0.0001; filterBeta: 1; warmupTolerance: 8; missTolerance: 20"
       color-space="sRGB"
       renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true; alpha: true"
       vr-mode-ui="enabled: false"
@@ -410,6 +427,7 @@ function buildScene(targetUrl, config) {
       <a-entity id="timelineTarget" mindar-image-target="targetIndex: 0">
         ${config.markers.map((marker) => hotspotMarkup({ ...marker, calibration: config.calibration })).join("")}
         ${actions.map((action, index) => actionMarkup(action, config.markers, index, config.calibration)).join("")}
+        ${weaponViewerMarkup()}
       </a-entity>
     </a-scene>
   `;
@@ -425,6 +443,7 @@ export default function MapImageARScene() {
   const arConfigRef = useRef(null);
   const actionListRef = useRef([]);
   const audioRef = useRef(null);
+  const resizeHandlerRef = useRef(null);
   const [loading, setLoading] = useState({
     active: false,
     title: "",
@@ -432,9 +451,25 @@ export default function MapImageARScene() {
     progress: 0,
     error: "",
   });
-  const [selected, setSelected] = useState(fallbackPoints[0]);
   const [activeVideo, setActiveVideo] = useState(null);
   const [running, setRunning] = useState(false);
+  const [selectedWeaponId, setSelectedWeaponId] = useState(weaponModels[0].id);
+  const [weaponVisible, setWeaponVisible] = useState(false);
+
+  const syncWeaponViewer = useCallback((visible = weaponVisible, weaponId = selectedWeaponId) => {
+    const scene = sceneRef.current;
+    const viewer = scene?.querySelector("#weapon-viewer");
+    if (!viewer) return;
+
+    viewer.setAttribute("visible", visible);
+    scene.querySelectorAll(".weapon-model").forEach((model) => {
+      model.setAttribute("visible", model.dataset.weaponId === weaponId);
+    });
+  }, [selectedWeaponId, weaponVisible]);
+
+  useEffect(() => {
+    syncWeaponViewer();
+  }, [syncWeaponViewer]);
 
   const selectPoint = (pointId) => {
     const marker = arConfigRef.current?.markers?.find((item) => item.id === pointId);
@@ -443,11 +478,11 @@ export default function MapImageARScene() {
       : fallbackPoints.find((item) => item.id === pointId);
     if (!point) return;
 
-    setSelected(point);
-    const videoPath = marker?.videoPath || "";
+    const fallbackVideo = pointVideos[pointId];
+    const videoPath = marker?.videoPath || fallbackVideo?.videoPath || "";
     if (videoPath) {
       setActiveVideo({
-        title: marker?.videoTitle || point.title,
+        title: marker?.videoTitle || fallbackVideo?.title || point.title,
         videoPath,
         pointTitle: point.title,
         pointId: point.id,
@@ -464,6 +499,53 @@ export default function MapImageARScene() {
     timelineStartedRef.current = false;
     playedVoiceIdsRef.current.clear();
     audioRef.current?.pause();
+  };
+
+  const resizeArScene = useCallback(() => {
+    const host = sceneHostRef.current;
+    const scene = sceneRef.current;
+    if (!host || !scene) return;
+
+    const viewport = window.visualViewport;
+    const width = Math.round(viewport?.width || window.innerWidth || host.clientWidth);
+    const height = Math.round(viewport?.height || window.innerHeight || host.clientHeight);
+
+    host.style.width = `${width}px`;
+    host.style.height = `${height}px`;
+    scene.style.width = `${width}px`;
+    scene.style.height = `${height}px`;
+
+    if (scene.renderer) {
+      scene.renderer.setSize(width, height, false);
+    }
+    if (scene.camera) {
+      scene.camera.aspect = width / height;
+      scene.camera.updateProjectionMatrix();
+    }
+    scene.resize?.();
+  }, []);
+
+  const attachArResize = useCallback(() => {
+    if (resizeHandlerRef.current) return;
+
+    const handler = () => {
+      window.requestAnimationFrame(resizeArScene);
+    };
+    resizeHandlerRef.current = handler;
+    window.addEventListener("resize", handler);
+    window.visualViewport?.addEventListener("resize", handler);
+    window.visualViewport?.addEventListener("scroll", handler);
+    handler();
+  }, [resizeArScene]);
+
+  const removeArResize = () => {
+    const handler = resizeHandlerRef.current;
+    if (!handler) return;
+
+    window.removeEventListener("resize", handler);
+    window.visualViewport?.removeEventListener("resize", handler);
+    window.visualViewport?.removeEventListener("scroll", handler);
+    resizeHandlerRef.current = null;
   };
 
   const playSegmentAudio = async (segment) => {
@@ -509,7 +591,6 @@ export default function MapImageARScene() {
       const actionPosition = parsePair(action.position);
       const points = pathPoints(action);
       const progress = Math.max(0, Math.min(1, (elapsedSeconds - start) / duration));
-      const baseRotation = Number(action.rotation || 0);
       const rotationX = Number(action.rotationX || 0);
       const rotationY = Number(action.rotationY || 0);
       const rotationZ = Number(action.rotationZ ?? action.rotation ?? 0);
@@ -599,6 +680,18 @@ export default function MapImageARScene() {
   const startMindAR = async () => {
     if (running) return;
 
+    const startupIssue = cameraSecurityIssue() || cameraSupportIssue();
+    if (startupIssue) {
+      setLoading({
+        active: true,
+        title: "Khong mo duoc camera",
+        note: startupIssue,
+        progress: 100,
+        error: "camera",
+      });
+      return;
+    }
+
     setRunning(true);
     setLoading({ active: true, title: "Dang tai AR", note: "Nap thu vien camera", progress: 8, error: "" });
 
@@ -616,14 +709,20 @@ export default function MapImageARScene() {
       sceneRef.current = sceneHostRef.current.querySelector("a-scene");
 
       sceneRef.current.addEventListener("arReady", () => setLoading((prev) => ({ ...prev, active: false, progress: 100 })));
-      sceneRef.current.addEventListener("loaded", attachScreenPicker);
+      sceneRef.current.addEventListener("loaded", () => {
+        attachScreenPicker();
+        syncWeaponViewer(weaponVisible, selectedWeaponId);
+        attachArResize();
+        window.setTimeout(resizeArScene, 150);
+        window.setTimeout(resizeArScene, 500);
+      });
       sceneRef.current.addEventListener("targetFound", startTimelineOnce);
       sceneRef.current.querySelector("#timelineTarget")?.addEventListener("targetFound", startTimelineOnce);
       sceneRef.current.addEventListener("arError", () =>
         setLoading({
           active: true,
           title: "Khong mo duoc camera",
-          note: "Hay kiem tra HTTPS va quyen camera",
+          note: cameraSecurityIssue() || "Hay kiem tra quyen camera trong trinh duyet roi thu lai.",
           progress: 100,
           error: "camera",
         })
@@ -655,6 +754,7 @@ export default function MapImageARScene() {
   };
 
   const stopMindAR = async () => {
+    removeArResize();
     removeScreenPicker();
     stopTimeline();
     const scene = sceneRef.current;
@@ -669,7 +769,13 @@ export default function MapImageARScene() {
   };
 
   return (
-    <div className="relative min-h-[560px] overflow-hidden rounded-[1.5rem] bg-slate-950">
+    <div
+      className={`overflow-hidden bg-slate-950 ${
+        running
+          ? "fixed inset-0 z-[9999] min-h-[100dvh] rounded-none"
+          : "relative min-h-[560px] rounded-[1.5rem]"
+      }`}
+    >
       {!running ? (
         <div className="absolute inset-0 grid place-items-center p-6 text-center text-white">
           <div className="max-w-md">
@@ -684,10 +790,10 @@ export default function MapImageARScene() {
         </div>
       ) : null}
 
-      <div ref={sceneHostRef} className="absolute inset-0 z-0 [&_a-scene]:h-full [&_a-scene]:w-full" />
+      <div ref={sceneHostRef} className="ar-scene-host absolute inset-0 z-0" />
 
       {loading.active ? (
-        <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-slate-950/72 p-6 text-white backdrop-blur-sm">
+        <div className="pointer-events-none absolute inset-0 z-50 grid place-items-center bg-slate-950/72 p-6 text-white backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-[1.5rem] border border-white/10 bg-slate-950/85 p-5 shadow-2xl">
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -713,24 +819,57 @@ export default function MapImageARScene() {
         </div>
       ) : null}
 
-      <div className="absolute bottom-4 left-4 right-4 z-30 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-        <div className="rounded-2xl border border-white/10 bg-white/90 p-4 text-slate-950 shadow-lg backdrop-blur">
-          <p className="text-sm font-black">{selected.title}</p>
-          <p className="mt-1 text-xs leading-5 text-slate-600">{selected.detail}</p>
-        </div>
+      <div
+        className={`absolute left-3 right-3 z-30 space-y-2 ${
+          running ? "top-[calc(env(safe-area-inset-top)+0.75rem)]" : "bottom-3"
+        }`}
+      >
+        {running ? (
+          <div className="rounded-2xl border border-white/10 bg-slate-950/82 p-2.5 text-white shadow-lg backdrop-blur">
+            <div className="flex items-center gap-2 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setWeaponVisible((value) => !value)}
+                className={`shrink-0 rounded-full px-3 py-2 text-xs font-black text-slate-950 transition ${
+                  weaponVisible ? "bg-red-300 hover:bg-red-200" : "bg-cyan-300 hover:bg-cyan-200"
+                }`}
+              >
+                {weaponVisible ? "An vu khi" : "Xem vu khi"}
+              </button>
+              {weaponModels.map((weapon) => (
+                <button
+                  key={weapon.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedWeaponId(weapon.id);
+                    setWeaponVisible(true);
+                  }}
+                  className={`shrink-0 rounded-full px-3 py-2 text-xs font-black transition ${
+                    selectedWeaponId === weapon.id
+                      ? "bg-white text-slate-950"
+                      : "bg-white/10 text-white hover:bg-white/20"
+                  }`}
+                >
+                  {weapon.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
         <div className="flex flex-wrap gap-2">
           <a
             href={TARGET_IMAGE}
             target="_blank"
             rel="noreferrer"
-            className="rounded-full bg-white px-4 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:bg-slate-100"
+            className="rounded-full bg-white px-3.5 py-2.5 text-xs font-black text-slate-950 shadow-lg transition hover:bg-slate-100"
           >
             Map target
           </a>
           <button
             type="button"
             onClick={running ? stopMindAR : startMindAR}
-            className="rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:bg-amber-200"
+            className="rounded-full bg-amber-300 px-4 py-2.5 text-xs font-black text-slate-950 shadow-lg transition hover:bg-amber-200"
           >
             {running ? "Stop AR" : "Start AR + Voice"}
           </button>
@@ -738,7 +877,7 @@ export default function MapImageARScene() {
             <button
               type="button"
               onClick={startTimelineOnce}
-              className="rounded-full bg-emerald-400 px-5 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:bg-emerald-300"
+              className="rounded-full bg-emerald-400 px-4 py-2.5 text-xs font-black text-slate-950 shadow-lg transition hover:bg-emerald-300"
             >
               Start Voice
             </button>
