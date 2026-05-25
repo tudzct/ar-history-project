@@ -385,7 +385,6 @@ export default function MapImageARScene() {
   };
 
   const stopMindAR = async () => {
-    removeArResize();
     removeScreenPicker();
     clearTimer();
     const scene = sceneRef.current;

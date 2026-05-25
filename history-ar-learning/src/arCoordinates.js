@@ -75,5 +75,5 @@ export function pathAngle(points, progress) {
   const ahead = pointOnPath(points, Math.min(1, progress + 0.01));
   const behind = pointOnPath(points, Math.max(0, progress - 0.01));
   if (!ahead || !behind) return 0;
-  return Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * (180 / Math.PI);
+  return Math.atan2(behind.y - ahead.y, ahead.x - behind.x) * (180 / Math.PI);
 }
