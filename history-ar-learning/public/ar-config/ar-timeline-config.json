@@ -109,32 +109,32 @@
           "type": "airplane",
           "label": "Hieu ung moi",
           "assetPath": "/ar-assets/airplane.glb",
-          "startAt": 2.3,
-          "duration": 27.7,
+          "startAt": 0.3,
+          "duration": 26,
           "pointId": "tan-thanh",
           "position": {
             "x": 31.3,
             "y": 44.7,
-            "z": 0.21
+            "z": 0.64
           },
           "path": [
             {
               "x": 80.3,
               "y": 81.4,
-              "z": 0.21
+              "z": 0.64
             },
             {
               "x": 25.3,
               "y": 32.1,
-              "z": 0.21
+              "z": 0.64
             }
           ],
           "transform": {
-            "z": 0.21,
+            "z": 0.64,
             "scale": 0.25,
-            "rotationX": -0.4,
-            "rotationY": 47,
-            "rotationZ": 141.1,
+            "rotationX": 3.6,
+            "rotationY": 2,
+            "rotationZ": 356.1,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
@@ -149,43 +149,6 @@
           "color": "#ef4444",
           "from": "78.7,81.8",
           "to": "25.9,25.0"
-        },
-        {
-          "id": "action-1779701063778-165",
-          "type": "attack-arrow",
-          "label": "attack-arrow",
-          "assetPath": "/ar-assets/attack-arrow.glb",
-          "startAt": 0,
-          "duration": 5,
-          "pointId": "thanh-minh",
-          "position": {
-            "x": 50,
-            "y": 50,
-            "z": 0.08
-          },
-          "path": [
-            {
-              "x": 42,
-              "y": 56.9,
-              "z": 0.08
-            },
-            {
-              "x": 63.4,
-              "y": 44.2,
-              "z": 0.08
-            }
-          ],
-          "transform": {
-            "z": 0.08,
-            "scale": 1,
-            "rotationX": -202.2,
-            "rotationY": 40,
-            "rotationZ": -50,
-            "offsetX": 0,
-            "offsetY": 0,
-            "offsetZ": 0,
-            "followPathRotation": true
-          }
         }
       ],
       "narration": "Phat sau khi nguoi dung dong cua so tran Him Lam, dan sang moc tiep theo.",

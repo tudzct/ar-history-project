@@ -3,8 +3,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MAP_IMAGE, defaultAssetByType } from "./arConfigSchema.js";
-import { TARGET_ASPECT, clamp } from "./arCoordinates.js";
-import { getActionPoint, getActionRotation } from "./arTimelineEngine.js";
+import { TARGET_ASPECT, mapLocalToPercentPoint, percentPointToMapLocal } from "./arCoordinates.js";
+import { getActionPoint, resolveActionMapPose } from "./arTimelineEngine.js";
 
 const MARKER_ASSET = "/ar-assets/flag-marker.glb";
 
@@ -15,19 +15,17 @@ function mediaPathToUrl(filePath = "") {
   return `/@fs/${encodeURI(cleanPath.replaceAll("\\", "/"))}`;
 }
 
-function mapPoint(point, fallbackZ = 0) {
+function mapPoint(point, fallbackZ = 0, calibration = {}) {
+  const local = percentPointToMapLocal(point, calibration, fallbackZ);
   return new THREE.Vector3(
-    Number(point?.x ?? 50) / 100 - 0.5,
-    Number(point?.z ?? fallbackZ),
-    (0.5 - Number(point?.y ?? 50) / 100) * TARGET_ASPECT
+    local.x,
+    local.z,
+    local.y
   );
 }
 
-function scenePointToPercent(point) {
-  return {
-    x: Number(clamp((point.x + 0.5) * 100).toFixed(1)),
-    y: Number(clamp((0.5 - point.z / TARGET_ASPECT) * 100).toFixed(1)),
-  };
+function scenePointToPercent(point, calibration = {}) {
+  return mapLocalToPercentPoint({ x: point.x, y: point.z, z: point.y }, calibration);
 }
 
 function applyARRotation(object, rotation) {
@@ -81,10 +79,10 @@ function makeFallbackAction(type, color = "#facc15") {
   return group;
 }
 
-function addPath(root, points, color, active = false, hitObjects = [], selectedPathIndex = -1) {
+function addPath(root, points, color, active = false, hitObjects = [], selectedPathIndex = -1, calibration = {}) {
   if (!points || points.length < 2) return;
   const material = new THREE.LineBasicMaterial({ color, linewidth: 2 });
-  const geometry = new THREE.BufferGeometry().setFromPoints(points.map((point) => mapPoint(point, point.z ?? 0.04)));
+  const geometry = new THREE.BufferGeometry().setFromPoints(points.map((point) => mapPoint(point, point.z ?? 0.04, calibration)));
   const line = new THREE.Line(geometry, material);
   line.position.y += active ? 0.018 : 0.01;
   root.add(line);
@@ -94,7 +92,7 @@ function addPath(root, points, color, active = false, hitObjects = [], selectedP
       new THREE.SphereGeometry(selected ? 0.026 : active ? 0.018 : 0.012, 16, 12),
       new THREE.MeshStandardMaterial({ color: selected ? 0xfacc15 : color, emissive: selected ? 0xfacc15 : color, emissiveIntensity: selected ? 0.9 : active ? 0.6 : 0.2 })
     );
-    dot.position.copy(mapPoint(point, point.z ?? 0.04));
+    dot.position.copy(mapPoint(point, point.z ?? 0.04, calibration));
     dot.userData = { type: "path", pathIndex: index };
     root.add(dot);
     if (selected) addSelectionPulse(root, dot.position.clone(), 0xfacc15, 0.05);
@@ -196,6 +194,7 @@ export default function TimelineMap3DPreview({
     const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const dragPoint = new THREE.Vector3();
     let dragTarget = null;
+    const calibration = state.calibration || {};
 
     const axes = new THREE.AxesHelper(0.34);
     axes.position.set(-0.43, 0.035, -0.43 * TARGET_ASPECT);
@@ -245,7 +244,7 @@ export default function TimelineMap3DPreview({
     (state.markers || []).forEach((marker) => {
       addModel(MARKER_ASSET, () => makeFallbackMarker(marker.color), (object) => {
         const isActive = selected?.kind === "marker" && selected.markerId === marker.id;
-        object.position.copy(mapPoint(marker, marker.z || 0.02));
+        object.position.copy(mapPoint(marker, marker.z || 0.02, calibration));
         object.position.y += 0.05;
         object.scale.setScalar(0.035 * Number(marker.scale || 0.35));
         root.add(object);
@@ -267,7 +266,7 @@ export default function TimelineMap3DPreview({
         root.add(hit);
         hitObjects.push(hit);
         if (isActive) {
-          const pulsePosition = mapPoint(marker, marker.z || 0.02);
+          const pulsePosition = mapPoint(marker, marker.z || 0.02, calibration);
           pulsePosition.y += 0.025;
           addSelectionPulse(root, pulsePosition, 0xfacc15, 0.07);
         }
@@ -289,23 +288,18 @@ export default function TimelineMap3DPreview({
         isSelected ? 0xfacc15 : 0x22c55e,
         isSelected,
         isSelected ? hitObjects : [],
-        selected?.kind === "path" && selected.actionIndex === actionIndex ? selected.pathIndex : -1
+        selected?.kind === "path" && selected.actionIndex === actionIndex ? selected.pathIndex : -1,
+        calibration
       );
       if (!point || (!isSelected && !isPlaying && action.type !== "highlight-marker" && action.type !== "open-video-marker")) return;
 
-      const position = {
-        ...point,
-        x: Number(point.x || 50) + Number(transform.offsetX || 0),
-        y: Number(point.y || 50) + Number(transform.offsetY || 0),
-        z: Number(point.z || transform.z || 0.08) + Number(transform.offsetZ || 0),
-      };
       const assetPath = action.assetPath || defaultAssetByType[action.type] || "";
       addModel(assetPath, () => makeFallbackAction(action.type, color), (object) => {
-        const rotation = getActionRotation(action, elapsed);
+        const pose = resolveActionMapPose(action, marker, elapsed);
         const isSelectedAction = selected?.kind === "action" && selected.actionIndex === actionIndex;
-        object.position.copy(mapPoint(position, transform.z || 0.08));
-        object.scale.setScalar(0.03 * Number(transform.scale || 1));
-        applyARRotation(object, rotation);
+        object.position.copy(mapPoint(pose.position, transform.z || 0.08, calibration));
+        object.scale.setScalar(0.03 * pose.scale);
+        applyARRotation(object, pose.rotation);
         root.add(object);
         if (isSelectedAction) {
           object.traverse((child) => {
@@ -340,7 +334,7 @@ export default function TimelineMap3DPreview({
     const placeFromEvent = (event) => {
       setPointer(event);
       if (!raycaster.ray.intersectPlane(dragPlane, dragPoint)) return null;
-      return scenePointToPercent(dragPoint);
+      return scenePointToPercent(dragPoint, calibration);
     };
 
     const updateDraggedTarget = (event) => {

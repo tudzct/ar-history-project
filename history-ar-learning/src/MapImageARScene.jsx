@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { CONFIG_URL, MAP_IMAGE, defaultAssetByType, normalizeConfig } from "./arConfigSchema.js";
-import { getActionPoint, getActionRotation, segmentDuration } from "./arTimelineEngine.js";
+import { resolveActionMapPose, segmentDuration } from "./arTimelineEngine.js";
 import { pointToAR } from "./arCoordinates.js";
 
 const TARGET_MIND = "/ar-targets/dien_bien_phu_map.mind";
@@ -102,7 +102,7 @@ function actionBasePoint(action, marker) {
     ...point,
     x: Number(point.x || 50) + Number(action.transform?.offsetX || 0),
     y: Number(point.y || 50) + Number(action.transform?.offsetY || 0),
-    z: Number(point.z ?? action.transform?.z ?? 0.08) + Number(action.transform?.offsetZ || 0),
+    z: Number(point.z || action.transform?.z || 0.08) + Number(action.transform?.offsetZ || 0),
   };
 }
 
@@ -242,19 +242,11 @@ export default function MapImageARScene() {
       if (!visible) return;
       const marker = config.markers.find((item) => item.id === action.pointId);
       const localElapsed = elapsed - start;
-      const point = getActionPoint(action, marker, localElapsed);
       const transform = action.transform || {};
-      const position = {
-        ...point,
-        x: Number(point.x || 50) + Number(transform.offsetX || 0),
-        y: Number(point.y || 50) + Number(transform.offsetY || 0),
-        z: Number(point.z || transform.z || 0.08) + Number(transform.offsetZ || 0),
-      };
-      const rotation = getActionRotation(action, localElapsed);
-      const scale = Number(transform.scale || 1);
-      entity.setAttribute("position", pointToAR(position, config.calibration, transform.z || 0.08));
-      entity.setAttribute("rotation", `${rotation.x} ${rotation.y} ${rotation.z}`);
-      entity.setAttribute("scale", `${scale} ${scale} ${scale}`);
+      const pose = resolveActionMapPose(action, marker, localElapsed);
+      entity.setAttribute("position", pointToAR(pose.position, config.calibration, transform.z || 0.08));
+      entity.setAttribute("rotation", `${pose.rotation.x} ${pose.rotation.y} ${pose.rotation.z}`);
+      entity.setAttribute("scale", `${pose.scale} ${pose.scale} ${pose.scale}`);
     });
   };
 

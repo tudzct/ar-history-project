@@ -7,15 +7,36 @@ export function clamp(value, min = 0, max = 100) {
 }
 
 export function percentToAR(x, y, z = 0, calibration = {}) {
+  const local = percentPointToMapLocal({ x, y, z }, calibration);
+  return `${local.x.toFixed(3)} ${local.y.toFixed(3)} ${local.z.toFixed(3)}`;
+}
+
+export function percentPointToMapLocal(point, calibration = {}, fallbackZ = 0) {
   const scaleX = Number(calibration.scaleX ?? 1);
   const scaleY = Number(calibration.scaleY ?? 1);
   const offsetX = Number(calibration.offsetX ?? 0);
   const offsetY = Number(calibration.offsetY ?? 0);
-  const normalizedX = (Number(x) - 50) * scaleX + 50 + offsetX;
-  const normalizedY = (Number(y) - 50) * scaleY + 50 + offsetY;
-  const arX = normalizedX / 100 - 0.5;
-  const arY = (0.5 - normalizedY / 100) * TARGET_ASPECT;
-  return `${arX.toFixed(3)} ${arY.toFixed(3)} ${Number(z || 0).toFixed(3)}`;
+  const normalizedX = (Number(point?.x ?? 50) - 50) * scaleX + 50 + offsetX;
+  const normalizedY = (Number(point?.y ?? 50) - 50) * scaleY + 50 + offsetY;
+  return {
+    x: normalizedX / 100 - 0.5,
+    y: (0.5 - normalizedY / 100) * TARGET_ASPECT,
+    z: Number(point?.z ?? fallbackZ ?? 0),
+  };
+}
+
+export function mapLocalToPercentPoint(local, calibration = {}) {
+  const scaleX = Number(calibration.scaleX ?? 1) || 1;
+  const scaleY = Number(calibration.scaleY ?? 1) || 1;
+  const offsetX = Number(calibration.offsetX ?? 0);
+  const offsetY = Number(calibration.offsetY ?? 0);
+  const normalizedX = (Number(local?.x ?? 0) + 0.5) * 100;
+  const normalizedY = (0.5 - Number(local?.y ?? 0) / TARGET_ASPECT) * 100;
+  return {
+    x: Number(clamp((normalizedX - 50 - offsetX) / scaleX + 50).toFixed(1)),
+    y: Number(clamp((normalizedY - 50 - offsetY) / scaleY + 50).toFixed(1)),
+    z: Number(local?.z ?? 0),
+  };
 }
 
 export function pointToAR(point, calibration = {}, fallbackZ = 0) {
@@ -75,5 +96,7 @@ export function pathAngle(points, progress) {
   const ahead = pointOnPath(points, Math.min(1, progress + 0.01));
   const behind = pointOnPath(points, Math.max(0, progress - 0.01));
   if (!ahead || !behind) return 0;
-  return Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * (180 / Math.PI);
+  const aheadLocal = percentPointToMapLocal(ahead);
+  const behindLocal = percentPointToMapLocal(behind);
+  return Math.atan2(aheadLocal.y - behindLocal.y, aheadLocal.x - behindLocal.x) * (180 / Math.PI);
 }

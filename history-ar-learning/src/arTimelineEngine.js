@@ -32,6 +32,22 @@ export function getActionRotation(action, elapsed) {
   };
 }
 
+export function resolveActionMapPose(action, marker, elapsed = 0) {
+  const transform = action?.transform || {};
+  const basePoint = getActionPoint(action, marker, elapsed);
+  const position = {
+    ...basePoint,
+    x: Number(basePoint?.x ?? 50) + Number(transform.offsetX || 0),
+    y: Number(basePoint?.y ?? 50) + Number(transform.offsetY || 0),
+    z: Number(basePoint?.z || transform.z || 0.08) + Number(transform.offsetZ || 0),
+  };
+  return {
+    position,
+    rotation: getActionRotation(action, elapsed),
+    scale: Number(transform.scale || 1),
+  };
+}
+
 export function activeActions(segment, elapsed) {
   return (segment?.actions || []).filter((action) => {
     const start = Number(action.startAt || 0);
