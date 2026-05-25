@@ -5,6 +5,38 @@
     "scaleX": 1,
     "scaleY": 1
   },
+  "weapons": [
+    {
+      "id": "mosin-nagant",
+      "label": "Mosin Nagant",
+      "modelUrl": "/ar-assets/weapons/mosin_nagant_m91.glb",
+      "position": "0 0 0",
+      "rotation": "0 0 0",
+      "scale": "1 1 1",
+      "fitSize": 0.75,
+      "fileSizeMb": 50.4
+    },
+    {
+      "id": "ak47",
+      "label": "AK-47",
+      "modelUrl": "/ar-assets/weapons/ak47.glb",
+      "position": "0 0 0",
+      "rotation": "0 0 0",
+      "scale": "1 1 1",
+      "fitSize": 0.75,
+      "fileSizeMb": 5.3
+    },
+    {
+      "id": "ar15",
+      "label": "AR-15",
+      "modelUrl": "/ar-assets/weapons/ar15.glb",
+      "position": "0 0 0",
+      "rotation": "0 0 0",
+      "scale": "1 1 1",
+      "fitSize": 0.75,
+      "fileSizeMb": 9.2
+    }
+  ],
   "markers": [
     {
       "markerScale": 0.25,

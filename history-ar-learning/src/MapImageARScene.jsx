@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 const TARGET_IMAGE = "/ar-targets/dien_bien_phu_map.jpg";
 const TARGET_MIND = "/ar-targets/dien_bien_phu_map.mind";
@@ -22,19 +22,6 @@ const defaultAssetByType = {
 };
 const DEFAULT_MARKER_ASSET = "/ar-assets/flag-marker.glb";
 const SECURE_CAMERA_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
-
-const weaponModels = [
-  {
-    id: "mosin-nagant",
-    label: "Mosin Nagant",
-    detail: "Sung truong then khoa, phu hop xem nhu hien vat vu khi trong lop AR.",
-  },
-  {
-    id: "rifle-round",
-    label: "Dan 7.62",
-    detail: "Vien dan minh hoa ty le nho de giai thich cau tao va boi canh vu khi.",
-  },
-];
 
 const pointVideos = {
   "him-lam": {
@@ -373,35 +360,6 @@ function flattenActions(timeline) {
   );
 }
 
-function weaponViewerMarkup() {
-  return `
-    <a-entity
-      id="weapon-viewer"
-      visible="false"
-      position="0 -0.08 0.08"
-      rotation="0 0 0"
-      scale="0.48 0.48 0.48"
-    >
-      <a-entity id="weapon-model-mosin-nagant" class="weapon-model" data-weapon-id="mosin-nagant" visible="true">
-        <a-cylinder radius="0.006" height="0.7" position="0.12 0 0.035" rotation="0 0 90" color="#171923"></a-cylinder>
-        <a-cylinder radius="0.009" height="0.16" position="-0.29 0 0.035" rotation="0 0 90" color="#262b35"></a-cylinder>
-        <a-box width="0.36" height="0.038" depth="0.03" position="-0.08 -0.004 0.012" color="#74451f"></a-box>
-        <a-box width="0.2" height="0.052" depth="0.035" position="-0.29 -0.022 0.01" rotation="0 0 -13" color="#5b351b"></a-box>
-        <a-box width="0.1" height="0.026" depth="0.028" position="-0.005 -0.045 0.018" color="#111827"></a-box>
-        <a-cylinder radius="0.0035" height="0.09" position="-0.055 -0.055 0.032" rotation="0 0 90" color="#0f172a"></a-cylinder>
-        <a-box width="0.06" height="0.01" depth="0.012" position="0.26 0.018 0.043" color="#111827"></a-box>
-        <a-ring radius-inner="0.02" radius-outer="0.026" position="-0.09 -0.05 0.033" rotation="90 0 0" color="#111827"></a-ring>
-      </a-entity>
-
-      <a-entity id="weapon-model-rifle-round" class="weapon-model" data-weapon-id="rifle-round" visible="false" scale="0.8 0.8 0.8">
-        <a-cylinder radius="0.025" height="0.26" position="0 0 0.02" rotation="0 0 90" color="#b45309"></a-cylinder>
-        <a-cone radius-bottom="0.025" radius-top="0.002" height="0.09" position="0.175 0 0.02" rotation="0 0 -90" color="#d1d5db"></a-cone>
-        <a-cylinder radius="0.026" height="0.02" position="-0.14 0 0.02" rotation="0 0 90" color="#92400e"></a-cylinder>
-      </a-entity>
-    </a-entity>
-  `;
-}
-
 function buildScene(targetUrl, config) {
   const actions = flattenActions(config.timeline);
   return `
@@ -427,7 +385,6 @@ function buildScene(targetUrl, config) {
       <a-entity id="timelineTarget" mindar-image-target="targetIndex: 0">
         ${config.markers.map((marker) => hotspotMarkup({ ...marker, calibration: config.calibration })).join("")}
         ${actions.map((action, index) => actionMarkup(action, config.markers, index, config.calibration)).join("")}
-        ${weaponViewerMarkup()}
       </a-entity>
     </a-scene>
   `;
@@ -453,23 +410,6 @@ export default function MapImageARScene() {
   });
   const [activeVideo, setActiveVideo] = useState(null);
   const [running, setRunning] = useState(false);
-  const [selectedWeaponId, setSelectedWeaponId] = useState(weaponModels[0].id);
-  const [weaponVisible, setWeaponVisible] = useState(false);
-
-  const syncWeaponViewer = useCallback((visible = weaponVisible, weaponId = selectedWeaponId) => {
-    const scene = sceneRef.current;
-    const viewer = scene?.querySelector("#weapon-viewer");
-    if (!viewer) return;
-
-    viewer.setAttribute("visible", visible);
-    scene.querySelectorAll(".weapon-model").forEach((model) => {
-      model.setAttribute("visible", model.dataset.weaponId === weaponId);
-    });
-  }, [selectedWeaponId, weaponVisible]);
-
-  useEffect(() => {
-    syncWeaponViewer();
-  }, [syncWeaponViewer]);
 
   const selectPoint = (pointId) => {
     const marker = arConfigRef.current?.markers?.find((item) => item.id === pointId);
@@ -625,11 +565,11 @@ export default function MapImageARScene() {
 
   const removeScreenPicker = () => {
     const host = sceneHostRef.current;
-    const handler = screenPickHandlerRef.current;
-    if (!host || !handler) return;
+    const handlers = screenPickHandlerRef.current;
+    if (!host || !handlers) return;
 
-    host.removeEventListener("pointerup", handler);
-    host.removeEventListener("touchend", handler);
+    host.removeEventListener("pointerup", handlers.pickHandler);
+    host.removeEventListener("touchend", handlers.pickHandler);
     screenPickHandlerRef.current = null;
   };
 
@@ -644,7 +584,7 @@ export default function MapImageARScene() {
     const raycaster = new AFRAME.THREE.Raycaster();
     const pointer = new AFRAME.THREE.Vector2();
 
-    const handler = (event) => {
+    const pickHandler = (event) => {
       if (event.target.closest?.("button,a,video")) return;
 
       const touch = event.changedTouches?.[0];
@@ -672,9 +612,11 @@ export default function MapImageARScene() {
       selectPoint(pointId);
     };
 
-    host.addEventListener("pointerup", handler);
-    host.addEventListener("touchend", handler, { passive: false });
-    screenPickHandlerRef.current = handler;
+    host.addEventListener("pointerup", pickHandler);
+    host.addEventListener("touchend", pickHandler, { passive: false });
+    screenPickHandlerRef.current = {
+      pickHandler,
+    };
   };
 
   const startMindAR = async () => {
@@ -711,7 +653,6 @@ export default function MapImageARScene() {
       sceneRef.current.addEventListener("arReady", () => setLoading((prev) => ({ ...prev, active: false, progress: 100 })));
       sceneRef.current.addEventListener("loaded", () => {
         attachScreenPicker();
-        syncWeaponViewer(weaponVisible, selectedWeaponId);
         attachArResize();
         window.setTimeout(resizeArScene, 150);
         window.setTimeout(resizeArScene, 500);
@@ -824,39 +765,6 @@ export default function MapImageARScene() {
           running ? "top-[calc(env(safe-area-inset-top)+0.75rem)]" : "bottom-3"
         }`}
       >
-        {running ? (
-          <div className="rounded-2xl border border-white/10 bg-slate-950/82 p-2.5 text-white shadow-lg backdrop-blur">
-            <div className="flex items-center gap-2 overflow-x-auto">
-              <button
-                type="button"
-                onClick={() => setWeaponVisible((value) => !value)}
-                className={`shrink-0 rounded-full px-3 py-2 text-xs font-black text-slate-950 transition ${
-                  weaponVisible ? "bg-red-300 hover:bg-red-200" : "bg-cyan-300 hover:bg-cyan-200"
-                }`}
-              >
-                {weaponVisible ? "An vu khi" : "Xem vu khi"}
-              </button>
-              {weaponModels.map((weapon) => (
-                <button
-                  key={weapon.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedWeaponId(weapon.id);
-                    setWeaponVisible(true);
-                  }}
-                  className={`shrink-0 rounded-full px-3 py-2 text-xs font-black transition ${
-                    selectedWeaponId === weapon.id
-                      ? "bg-white text-slate-950"
-                      : "bg-white/10 text-white hover:bg-white/20"
-                  }`}
-                >
-                  {weapon.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
         <div className="flex flex-wrap gap-2">
           <a
             href={TARGET_IMAGE}
