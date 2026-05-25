@@ -28,11 +28,45 @@ export const defaultAssetByType = {
   "highlight-marker": "/ar-assets/flag-marker.glb",
 };
 
+export const assetOrientationProfiles = {
+  airplane: {
+    label: "Airplane GLB default",
+    z: 0.16,
+    scale: 1,
+    yawOffset: 0,
+    followPathRotation: true,
+    modelRotationX: 90,
+    modelRotationY: 0,
+    modelRotationZ: 0,
+  },
+  airplaneFlip: {
+    label: "Airplane flipped",
+    z: 0.16,
+    scale: 1,
+    yawOffset: 0,
+    followPathRotation: true,
+    modelRotationX: -90,
+    modelRotationY: 0,
+    modelRotationZ: 180,
+  },
+  airplaneOld: {
+    label: "Airplane old preset",
+    z: 0.16,
+    scale: 1,
+    yawOffset: 0,
+    followPathRotation: true,
+    modelRotationX: -90,
+    modelRotationY: 0,
+    modelRotationZ: 0,
+  },
+};
+
 export const defaultMapCalibration = {
   offsetX: 0,
   offsetY: 0,
   scaleX: 1,
   scaleY: 1,
+  showGuides: false,
 };
 
 export const defaultMarkers = [
@@ -73,13 +107,18 @@ export const defaultConfig = {
           transform: {
             z: 0.16,
             scale: 1,
-            rotationX: -90,
+            yawOffset: 0,
+            modelRotationX: 90,
+            modelRotationY: 0,
+            modelRotationZ: 0,
+            rotationX: 90,
             rotationY: 0,
             rotationZ: 0,
             offsetX: 0,
             offsetY: 0,
             offsetZ: 0,
             followPathRotation: true,
+            showLocalAxes: false,
           },
         },
       ],
@@ -117,6 +156,8 @@ export function makeSegment(index = 0, markerId = "") {
 }
 
 export function makeAction(type = "model", markerId = "") {
+  const profile = type === "airplane" ? assetOrientationProfiles.airplane : null;
+  const defaultZ = profile?.z ?? (type === "airplane" ? 0.16 : 0.08);
   return {
     id: uid("action"),
     type,
@@ -125,21 +166,26 @@ export function makeAction(type = "model", markerId = "") {
     startAt: 0,
     duration: 5,
     pointId: markerId,
-    position: { x: 50, y: 50, z: type === "airplane" ? 0.16 : 0.08 },
+    position: { x: 50, y: 50, z: defaultZ },
     path: type === "airplane" || type === "attack-arrow" || type === "bomb-drop" ? [
-      { x: 35, y: 65, z: type === "airplane" ? 0.16 : 0.08 },
-      { x: 55, y: 50, z: type === "airplane" ? 0.16 : 0.08 },
+      { x: 35, y: 65, z: defaultZ },
+      { x: 55, y: 50, z: defaultZ },
     ] : [],
     transform: {
-      z: type === "airplane" ? 0.16 : 0.08,
-      scale: 1,
-      rotationX: type === "airplane" ? -90 : 0,
-      rotationY: 0,
-      rotationZ: 0,
+      z: defaultZ,
+      scale: profile?.scale ?? 1,
+      yawOffset: profile?.yawOffset ?? 0,
+      modelRotationX: profile?.modelRotationX ?? 0,
+      modelRotationY: profile?.modelRotationY ?? 0,
+      modelRotationZ: profile?.modelRotationZ ?? 0,
+      rotationX: profile?.modelRotationX ?? 0,
+      rotationY: profile?.modelRotationY ?? 0,
+      rotationZ: profile?.yawOffset ?? 0,
       offsetX: 0,
       offsetY: 0,
       offsetZ: 0,
-      followPathRotation: ["airplane", "attack-arrow", "bomb-drop"].includes(type),
+      followPathRotation: profile?.followPathRotation ?? ["airplane", "attack-arrow", "bomb-drop"].includes(type),
+      showLocalAxes: false,
     },
   };
 }
@@ -155,16 +201,24 @@ function normalizeMarker(marker, index) {
 
 function normalizeTransform(action) {
   const point = parsePoint(action?.position) || parsePoint(action?.from) || { x: 50, y: 50, z: 0.08 };
+  const legacyRotationX = Number(action?.transform?.rotationX ?? action?.rotationX ?? 0);
+  const legacyRotationY = Number(action?.transform?.rotationY ?? action?.rotationY ?? 0);
+  const legacyRotationZ = Number(action?.transform?.rotationZ ?? action?.rotationZ ?? action?.rotation ?? 0);
   return {
     z: Number(action?.transform?.z ?? action?.height ?? point.z ?? 0.08),
     scale: Number(action?.transform?.scale ?? action?.scale ?? 1),
-    rotationX: Number(action?.transform?.rotationX ?? action?.rotationX ?? 0),
-    rotationY: Number(action?.transform?.rotationY ?? action?.rotationY ?? 0),
-    rotationZ: Number(action?.transform?.rotationZ ?? action?.rotationZ ?? action?.rotation ?? 0),
+    yawOffset: Number(action?.transform?.yawOffset ?? legacyRotationZ),
+    modelRotationX: Number(action?.transform?.modelRotationX ?? legacyRotationX),
+    modelRotationY: Number(action?.transform?.modelRotationY ?? legacyRotationY),
+    modelRotationZ: Number(action?.transform?.modelRotationZ ?? 0),
+    rotationX: legacyRotationX,
+    rotationY: legacyRotationY,
+    rotationZ: legacyRotationZ,
     offsetX: Number(action?.transform?.offsetX ?? action?.modelOffsetX ?? 0),
     offsetY: Number(action?.transform?.offsetY ?? action?.modelOffsetY ?? 0),
     offsetZ: Number(action?.transform?.offsetZ ?? action?.modelOffsetZ ?? 0),
     followPathRotation: Boolean(action?.transform?.followPathRotation ?? ["airplane", "attack-arrow", "bomb-drop"].includes(action?.type)),
+    showLocalAxes: Boolean(action?.transform?.showLocalAxes ?? false),
   };
 }
 

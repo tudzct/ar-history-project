@@ -91,12 +91,12 @@ export function pointOnPath(points, progress) {
   return points[points.length - 1];
 }
 
-export function pathAngle(points, progress) {
+export function pathAngle(points, progress, calibration = {}) {
   if (points.length < 2) return 0;
   const ahead = pointOnPath(points, Math.min(1, progress + 0.01));
   const behind = pointOnPath(points, Math.max(0, progress - 0.01));
   if (!ahead || !behind) return 0;
-  const aheadLocal = percentPointToMapLocal(ahead);
-  const behindLocal = percentPointToMapLocal(behind);
+  const aheadLocal = percentPointToMapLocal(ahead, calibration);
+  const behindLocal = percentPointToMapLocal(behind, calibration);
   return Math.atan2(aheadLocal.y - behindLocal.y, aheadLocal.x - behindLocal.x) * (180 / Math.PI);
 }

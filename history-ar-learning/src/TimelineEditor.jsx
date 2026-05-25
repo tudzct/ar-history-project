@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CONFIG_URL,
   actionTypes,
+  assetOrientationProfiles,
   defaultAssetByType,
   defaultConfig,
+  defaultMapCalibration,
   makeAction,
   makeMarker,
   makeSegment,
@@ -29,6 +31,50 @@ const mapModeLabels = {
   action: "Đặt asset",
   path: "Vẽ đường đi",
 };
+
+const assetOrientationPresets = {
+  airplane: {
+    ...assetOrientationProfiles.airplane,
+    label: "Preset A: X 90",
+  },
+  airplaneFlip: {
+    ...assetOrientationProfiles.airplaneFlip,
+    label: "Preset B: X -90 Z 180",
+  },
+  airplaneOld: {
+    ...assetOrientationProfiles.airplaneOld,
+    label: "Preset C: X -90",
+  },
+  attackArrow: {
+    label: "Mũi tên nằm trên bản đồ, hướng theo đường đi",
+    modelRotationX: 0,
+    modelRotationY: 0,
+    modelRotationZ: 0,
+    yawOffset: 0,
+    followPathRotation: true,
+  },
+  uprightMarker: {
+    label: "Asset đứng thẳng trên bản đồ",
+    modelRotationX: 0,
+    modelRotationY: 0,
+    modelRotationZ: 0,
+    yawOffset: 0,
+    followPathRotation: false,
+  },
+};
+
+const airplaneDebugPresets = [
+  { label: "A: X 90", modelRotationX: 90, modelRotationY: 0, modelRotationZ: 0 },
+  { label: "B: X -90 Z 180", modelRotationX: -90, modelRotationY: 0, modelRotationZ: 180 },
+  { label: "C: X -90", modelRotationX: -90, modelRotationY: 0, modelRotationZ: 0 },
+  { label: "D: Reset", modelRotationX: 0, modelRotationY: 0, modelRotationZ: 0 },
+  { label: "E: Y 90", modelRotationX: 0, modelRotationY: 90, modelRotationZ: 0 },
+  { label: "F: Y -90", modelRotationX: 0, modelRotationY: -90, modelRotationZ: 0 },
+  { label: "G: Z 90", modelRotationX: 0, modelRotationY: 0, modelRotationZ: 90 },
+  { label: "H: Z -90", modelRotationX: 0, modelRotationY: 0, modelRotationZ: -90 },
+  { label: "I: X 90 Z 180", modelRotationX: 90, modelRotationY: 0, modelRotationZ: 180 },
+  { label: "J: X 90 Y 180", modelRotationX: 90, modelRotationY: 180, modelRotationZ: 0 },
+];
 
 function fieldClass() {
   return "rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 outline-none transition focus:border-slate-500";
@@ -111,6 +157,17 @@ function Quick3DControls({
     nextPath[selected.pathIndex] = { ...nextPath[selected.pathIndex], ...patch };
     patchAction({ path: nextPath });
   };
+  const patchActionTransform = (patch) => {
+    patchAction({
+      transform: {
+        ...(activeAction.transform || {}),
+        ...patch,
+        rotationX: patch.modelRotationX ?? activeAction.transform?.rotationX ?? 0,
+        rotationY: patch.modelRotationY ?? activeAction.transform?.rotationY ?? 0,
+        rotationZ: patch.yawOffset ?? activeAction.transform?.rotationZ ?? 0,
+      },
+    });
+  };
 
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
@@ -164,23 +221,66 @@ function Quick3DControls({
             <NumberStepper label="Phóng to / thu nhỏ" value={transformValue(activeAction, "scale", 1)} step={0.05} min={0.05} max={8} onChange={(value) => onUpdateActionTransform("scale", value)} />
           </div>
 
+          <div className="grid gap-2 rounded-xl bg-slate-50 p-3">
+            <p className="text-xs font-black uppercase tracking-[0.12em] text-slate-500">Preset hướng asset</p>
+            <div className="grid gap-2">
+              {Object.entries(assetOrientationPresets).map(([presetId, preset]) => (
+                <button
+                  key={presetId}
+                  type="button"
+                  className={buttonClass()}
+                  onClick={() => patchActionTransform(preset)}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {activeAction.type === "airplane" ? (
+            <div className="grid gap-2 rounded-xl bg-amber-50 p-3">
+              <p className="text-xs font-black uppercase tracking-[0.12em] text-amber-900">Test nhanh hướng máy bay</p>
+              <div className="grid grid-cols-2 gap-2">
+                {airplaneDebugPresets.map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    className={buttonClass()}
+                    onClick={() => patchActionTransform({
+                      modelRotationX: preset.modelRotationX,
+                      modelRotationY: preset.modelRotationY,
+                      modelRotationZ: preset.modelRotationZ,
+                    })}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+              <label className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-bold text-slate-700">
+                <input type="checkbox" checked={Boolean(activeAction.transform?.showLocalAxes)} onChange={(event) => onUpdateActionTransform("showLocalAxes", event.target.checked)} />
+                Hiện trục local X/Y/Z trên model khi quét AR
+              </label>
+            </div>
+          ) : null}
+
           <div className="grid gap-3">
-            <NumberStepper label="Xoay X" value={transformValue(activeAction, "rotationX", 0)} step={5} min={-180} max={180} onChange={(value) => onUpdateActionTransform("rotationX", value)} />
-            <NumberStepper label="Xoay Y" value={transformValue(activeAction, "rotationY", 0)} step={5} min={-180} max={180} onChange={(value) => onUpdateActionTransform("rotationY", value)} />
-            <NumberStepper label="Xoay Z" value={transformValue(activeAction, "rotationZ", 0)} step={5} min={-180} max={180} onChange={(value) => onUpdateActionTransform("rotationZ", value)} />
+            <NumberStepper label="HÆ°á»›ng Ä‘i / yaw offset" value={transformValue(activeAction, "yawOffset", transformValue(activeAction, "rotationZ", 0))} step={5} min={-180} max={180} onChange={(value) => onUpdateActionTransform("yawOffset", value)} />
+            <NumberStepper label="Sá»­a trá»¥c model X" value={transformValue(activeAction, "modelRotationX", transformValue(activeAction, "rotationX", 0))} step={5} min={-180} max={180} onChange={(value) => onUpdateActionTransform("modelRotationX", value)} />
+            <NumberStepper label="Sá»­a trá»¥c model Y" value={transformValue(activeAction, "modelRotationY", transformValue(activeAction, "rotationY", 0))} step={5} min={-180} max={180} onChange={(value) => onUpdateActionTransform("modelRotationY", value)} />
+            <NumberStepper label="Sá»­a trá»¥c model Z" value={transformValue(activeAction, "modelRotationZ", 0)} step={5} min={-180} max={180} onChange={(value) => onUpdateActionTransform("modelRotationZ", value)} />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("rotationZ", transformValue(activeAction, "rotationZ", 0) - 15)}>
+            <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("yawOffset", transformValue(activeAction, "yawOffset", transformValue(activeAction, "rotationZ", 0)) - 15)}>
               Xoay trái 15°
             </button>
-            <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("rotationZ", transformValue(activeAction, "rotationZ", 0) + 15)}>
+            <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("yawOffset", transformValue(activeAction, "yawOffset", transformValue(activeAction, "rotationZ", 0)) + 15)}>
               Xoay phải 15°
             </button>
-            <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("rotationX", -90)}>
-              Đặt nằm trên bản đồ
-            </button>
-            <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("rotationX", 0)}>
+            <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("modelRotationX", 90)}>
+            Đặt nằm trên bản đồ (X 90)
+          </button>
+            <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("modelRotationX", 0)}>
               Đặt đứng thẳng
             </button>
           </div>
@@ -348,6 +448,13 @@ export default function TimelineEditor() {
     }));
   };
 
+  const updateCalibration = (patch) => {
+    patchState((current) => ({
+      ...current,
+      calibration: { ...defaultMapCalibration, ...(current.calibration || {}), ...patch },
+    }));
+  };
+
   const updateAction = (segmentIndex, actionIndex, patch) => {
     patchState((current) => ({
       ...current,
@@ -371,8 +478,24 @@ export default function TimelineEditor() {
       });
       return;
     }
+    const syncPatch = { [field]: value };
+    if (field === "yawOffset" || field === "rotationZ") {
+      syncPatch.yawOffset = value;
+      syncPatch.rotationZ = value;
+    }
+    if (field === "modelRotationX" || field === "rotationX") {
+      syncPatch.modelRotationX = value;
+      syncPatch.rotationX = value;
+    }
+    if (field === "modelRotationY" || field === "rotationY") {
+      syncPatch.modelRotationY = value;
+      syncPatch.rotationY = value;
+    }
+    if (field === "modelRotationZ") {
+      syncPatch.modelRotationZ = value;
+    }
     updateAction(selected.segmentIndex, selected.actionIndex, {
-      transform: { ...(activeAction.transform || {}), [field]: value },
+      transform: { ...(activeAction.transform || {}), ...syncPatch },
     });
   };
 
@@ -486,6 +609,39 @@ export default function TimelineEditor() {
               Sao chép URL
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500">Hiệu chỉnh AR thật</p>
+            <h3 className="mt-1 text-xl font-black text-slate-950">Căn overlay với bản đồ ngoài đời</h3>
+            <p className="mt-2 max-w-3xl rounded-lg bg-amber-50 px-3 py-2 text-sm font-semibold leading-6 text-amber-900">
+              Lưu ý: ảnh trong editor, ảnh in ngoài đời và ảnh dùng để tạo file .mind phải cùng nội dung, cùng tỉ lệ, không crop và không thêm viền. Calibration chỉ dùng để sửa lệch nhỏ; nếu lệch theo góc/perspective thì cần tạo lại .mind từ đúng ảnh in.
+            </p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+              Nếu trên điện thoại asset lệch so với editor, bật điểm căn AR, mở điện thoại quét map, rồi chỉnh offset/scale cho 4 góc và tâm nằm đúng trên bản đồ thật. Các giá trị này dịch/chỉnh toàn bộ asset theo map tracking.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={buttonClass(Boolean(state.calibration?.showGuides))}
+              onClick={() => updateCalibration({ showGuides: !state.calibration?.showGuides })}
+            >
+              {state.calibration?.showGuides ? "Ẩn điểm căn AR" : "Hiện điểm căn AR"}
+            </button>
+            <button type="button" className={buttonClass()} onClick={() => updateCalibration(defaultMapCalibration)}>
+              Reset căn chỉnh
+            </button>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-4">
+          <NumberStepper label="Dịch X" value={state.calibration?.offsetX ?? 0} step={0.1} min={-30} max={30} onChange={(value) => updateCalibration({ offsetX: value })} />
+          <NumberStepper label="Dịch Y" value={state.calibration?.offsetY ?? 0} step={0.1} min={-30} max={30} onChange={(value) => updateCalibration({ offsetY: value })} />
+          <NumberStepper label="Scale X" value={state.calibration?.scaleX ?? 1} step={0.01} min={0.5} max={1.5} onChange={(value) => updateCalibration({ scaleX: value })} />
+          <NumberStepper label="Scale Y" value={state.calibration?.scaleY ?? 1} step={0.01} min={0.5} max={1.5} onChange={(value) => updateCalibration({ scaleY: value })} />
         </div>
       </div>
 
@@ -674,11 +830,11 @@ export default function TimelineEditor() {
                   <input type="number" step="0.01" className={fieldClass()} value={activeAction.position?.z ?? transformValue(activeAction, "z", 0.08)} onChange={(event) => updateActionTransform("z", Number(event.target.value))} />
                 </div>
                 <p className="text-xs font-bold text-slate-500">Vị trí asset: X %, Y %, độ cao Z so với mặt bản đồ.</p>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                   <input type="number" step="0.01" className={fieldClass()} value={transformValue(activeAction, "z", 0.08)} onChange={(event) => updateActionTransform("z", Number(event.target.value))} />
                   <input type="number" step="0.1" className={fieldClass()} value={transformValue(activeAction, "scale", 1)} onChange={(event) => updateActionTransform("scale", Number(event.target.value))} />
-                  <input type="number" step="1" className={fieldClass()} value={transformValue(activeAction, "rotationX", 0)} onChange={(event) => updateActionTransform("rotationX", Number(event.target.value))} />
-                  <input type="number" step="1" className={fieldClass()} value={transformValue(activeAction, "rotationZ", 0)} onChange={(event) => updateActionTransform("rotationZ", Number(event.target.value))} />
+                  <input type="number" step="1" className={fieldClass()} value={transformValue(activeAction, "modelRotationX", transformValue(activeAction, "rotationX", 0))} onChange={(event) => updateActionTransform("modelRotationX", Number(event.target.value))} />
+                  <input type="number" step="1" className={fieldClass()} value={transformValue(activeAction, "yawOffset", transformValue(activeAction, "rotationZ", 0))} onChange={(event) => updateActionTransform("yawOffset", Number(event.target.value))} />
                 </div>
                 <p className="text-xs font-bold text-slate-500">Theo thứ tự: độ cao Z, phóng to/thu nhỏ, xoay X, xoay Z.</p>
                 <label className="flex items-center gap-2 text-sm font-bold text-slate-700">

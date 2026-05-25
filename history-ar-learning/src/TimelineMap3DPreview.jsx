@@ -3,8 +3,14 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MAP_IMAGE, defaultAssetByType } from "./arConfigSchema.js";
-import { TARGET_ASPECT, mapLocalToPercentPoint, percentPointToMapLocal } from "./arCoordinates.js";
+import { TARGET_ASPECT } from "./arCoordinates.js";
 import { getActionPoint, resolveActionMapPose } from "./arTimelineEngine.js";
+import {
+  modelRotationToThreeEuler,
+  percentToThreeVector,
+  threeVectorToPercent,
+  yawToThreeEuler,
+} from "./arSpace.js";
 
 const MARKER_ASSET = "/ar-assets/flag-marker.glb";
 
@@ -13,27 +19,6 @@ function mediaPathToUrl(filePath = "") {
   if (!cleanPath) return "";
   if (cleanPath.startsWith("/") || cleanPath.startsWith("http")) return cleanPath;
   return `/@fs/${encodeURI(cleanPath.replaceAll("\\", "/"))}`;
-}
-
-function mapPoint(point, fallbackZ = 0, calibration = {}) {
-  const local = percentPointToMapLocal(point, calibration, fallbackZ);
-  return new THREE.Vector3(
-    local.x,
-    local.z,
-    local.y
-  );
-}
-
-function scenePointToPercent(point, calibration = {}) {
-  return mapLocalToPercentPoint({ x: point.x, y: point.z, z: point.y }, calibration);
-}
-
-function applyARRotation(object, rotation) {
-  object.rotation.set(
-    THREE.MathUtils.degToRad(rotation.x),
-    THREE.MathUtils.degToRad(rotation.z),
-    THREE.MathUtils.degToRad(rotation.y)
-  );
 }
 
 function makeFallbackMarker(color = "#ef4444") {
@@ -82,7 +67,7 @@ function makeFallbackAction(type, color = "#facc15") {
 function addPath(root, points, color, active = false, hitObjects = [], selectedPathIndex = -1, calibration = {}) {
   if (!points || points.length < 2) return;
   const material = new THREE.LineBasicMaterial({ color, linewidth: 2 });
-  const geometry = new THREE.BufferGeometry().setFromPoints(points.map((point) => mapPoint(point, point.z ?? 0.04, calibration)));
+  const geometry = new THREE.BufferGeometry().setFromPoints(points.map((point) => percentToThreeVector(point, calibration, point.z ?? 0.04)));
   const line = new THREE.Line(geometry, material);
   line.position.y += active ? 0.018 : 0.01;
   root.add(line);
@@ -92,7 +77,7 @@ function addPath(root, points, color, active = false, hitObjects = [], selectedP
       new THREE.SphereGeometry(selected ? 0.026 : active ? 0.018 : 0.012, 16, 12),
       new THREE.MeshStandardMaterial({ color: selected ? 0xfacc15 : color, emissive: selected ? 0xfacc15 : color, emissiveIntensity: selected ? 0.9 : active ? 0.6 : 0.2 })
     );
-    dot.position.copy(mapPoint(point, point.z ?? 0.04, calibration));
+    dot.position.copy(percentToThreeVector(point, calibration, point.z ?? 0.04));
     dot.userData = { type: "path", pathIndex: index };
     root.add(dot);
     if (selected) addSelectionPulse(root, dot.position.clone(), 0xfacc15, 0.05);
@@ -159,9 +144,10 @@ export default function TimelineMap3DPreview({
 }) {
   const hostRef = useRef(null);
   const rotatePadRef = useRef(null);
+  const resetViewRef = useRef(null);
   const cameraStateRef = useRef({
-    position: [0.15, 1.25, 1.35],
-    target: [0, 0.02, 0],
+    position: [0, 1.35, 0.08],
+    target: [0, 0, 0],
   });
 
   useEffect(() => {
@@ -180,6 +166,17 @@ export default function TimelineMap3DPreview({
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.target.fromArray(cameraStateRef.current.target);
+    controls.minPolarAngle = 0.08;
+    controls.maxPolarAngle = Math.PI / 2.05;
+    resetViewRef.current = () => {
+      camera.position.set(0, 1.35, 0.08);
+      controls.target.set(0, 0, 0);
+      cameraStateRef.current = {
+        position: camera.position.toArray(),
+        target: controls.target.toArray(),
+      };
+      controls.update();
+    };
 
     scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 2.1));
     const sun = new THREE.DirectionalLight(0xffffff, 2.4);
@@ -196,40 +193,29 @@ export default function TimelineMap3DPreview({
     let dragTarget = null;
     const calibration = state.calibration || {};
 
-    const axes = new THREE.AxesHelper(0.34);
-    axes.position.set(-0.43, 0.035, -0.43 * TARGET_ASPECT);
-    root.add(axes);
-    const makeAxisLabel = (text, color, position) => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 128;
-      canvas.height = 64;
-      const context = canvas.getContext("2d");
-      context.fillStyle = color;
-      context.font = "700 34px Arial, sans-serif";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
-      context.fillText(text, 64, 32);
-      const texture = new THREE.CanvasTexture(canvas);
-      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
-      sprite.position.copy(position);
-      sprite.scale.set(0.09, 0.045, 1);
-      root.add(sprite);
-    };
-    makeAxisLabel("X", "#ef4444", new THREE.Vector3(-0.08, 0.035, -0.43 * TARGET_ASPECT));
-    makeAxisLabel("Cao", "#22c55e", new THREE.Vector3(-0.43, 0.36, -0.43 * TARGET_ASPECT));
-    makeAxisLabel("Y map", "#38bdf8", new THREE.Vector3(-0.43, 0.035, (-0.43 * TARGET_ASPECT) + 0.34));
-
     new THREE.TextureLoader().load(MAP_IMAGE, (texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
       const map = new THREE.Mesh(
         new THREE.PlaneGeometry(1, TARGET_ASPECT),
-        new THREE.MeshBasicMaterial({ map: texture })
+        new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
       );
       map.rotation.x = Math.PI / 2;
+      map.renderOrder = -10;
       map.userData = { type: "map" };
       root.add(map);
       hitObjects.push(map);
     });
+    const border = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-0.5, 0.004, -TARGET_ASPECT / 2),
+        new THREE.Vector3(0.5, 0.004, -TARGET_ASPECT / 2),
+        new THREE.Vector3(0.5, 0.004, TARGET_ASPECT / 2),
+        new THREE.Vector3(-0.5, 0.004, TARGET_ASPECT / 2),
+        new THREE.Vector3(-0.5, 0.004, -TARGET_ASPECT / 2),
+      ]),
+      new THREE.LineBasicMaterial({ color: 0xfacc15 })
+    );
+    root.add(border);
 
     const loader = new GLTFLoader();
     const addModel = (path, fallback, setup) => {
@@ -244,7 +230,7 @@ export default function TimelineMap3DPreview({
     (state.markers || []).forEach((marker) => {
       addModel(MARKER_ASSET, () => makeFallbackMarker(marker.color), (object) => {
         const isActive = selected?.kind === "marker" && selected.markerId === marker.id;
-        object.position.copy(mapPoint(marker, marker.z || 0.02, calibration));
+        object.position.copy(percentToThreeVector(marker, calibration, marker.z || 0.02));
         object.position.y += 0.05;
         object.scale.setScalar(0.035 * Number(marker.scale || 0.35));
         root.add(object);
@@ -266,7 +252,7 @@ export default function TimelineMap3DPreview({
         root.add(hit);
         hitObjects.push(hit);
         if (isActive) {
-          const pulsePosition = mapPoint(marker, marker.z || 0.02, calibration);
+          const pulsePosition = percentToThreeVector(marker, calibration, marker.z || 0.02);
           pulsePosition.y += 0.025;
           addSelectionPulse(root, pulsePosition, 0xfacc15, 0.07);
         }
@@ -295,12 +281,16 @@ export default function TimelineMap3DPreview({
 
       const assetPath = action.assetPath || defaultAssetByType[action.type] || "";
       addModel(assetPath, () => makeFallbackAction(action.type, color), (object) => {
-        const pose = resolveActionMapPose(action, marker, elapsed);
+        const pose = resolveActionMapPose(action, marker, elapsed, calibration);
         const isSelectedAction = selected?.kind === "action" && selected.actionIndex === actionIndex;
-        object.position.copy(mapPoint(pose.position, transform.z || 0.08, calibration));
-        object.scale.setScalar(0.03 * pose.scale);
-        applyARRotation(object, pose.rotation);
-        root.add(object);
+        const rootObject = new THREE.Group();
+        rootObject.position.copy(percentToThreeVector(pose.position, calibration, transform.z || 0.08));
+        rootObject.rotation.copy(yawToThreeEuler(pose.yaw));
+        rootObject.scale.setScalar(pose.scale);
+        object.rotation.copy(modelRotationToThreeEuler(pose.modelRotation));
+        object.scale.setScalar(assetPath ? 0.03 : 1);
+        rootObject.add(object);
+        root.add(rootObject);
         if (isSelectedAction) {
           object.traverse((child) => {
             if (child.material?.emissive) {
@@ -309,7 +299,7 @@ export default function TimelineMap3DPreview({
               child.material.emissiveIntensity = 0.5;
             }
           });
-          const pulsePosition = object.position.clone();
+          const pulsePosition = rootObject.position.clone();
           pulsePosition.y += 0.015;
           addSelectionPulse(root, pulsePosition, 0xfacc15, 0.085 * Math.max(1, Number(transform.scale || 1)));
         }
@@ -317,7 +307,7 @@ export default function TimelineMap3DPreview({
           new THREE.SphereGeometry(0.08 * Math.max(1, Number(transform.scale || 1)), 16, 12),
           new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
         );
-        hit.position.copy(object.position);
+        hit.position.copy(rootObject.position);
         hit.userData = { type: "action", actionIndex };
         root.add(hit);
         hitObjects.push(hit);
@@ -334,7 +324,7 @@ export default function TimelineMap3DPreview({
     const placeFromEvent = (event) => {
       setPointer(event);
       if (!raycaster.ray.intersectPlane(dragPlane, dragPoint)) return null;
-      return scenePointToPercent(dragPoint, calibration);
+      return threeVectorToPercent(dragPoint, calibration);
     };
 
     const updateDraggedTarget = (event) => {
@@ -445,13 +435,15 @@ export default function TimelineMap3DPreview({
       disposeObject(scene);
       renderer.dispose();
       host.removeChild(renderer.domElement);
+      resetViewRef.current = null;
     };
   }, [activeAction, activeSegment, mapMode, onPlacePoint, onSelect, onUpdateAction, onUpdateMarker, playTime, selected, state]);
 
   const canRotate = selected?.kind === "action" && activeAction;
-  const rotationX = Number(activeAction?.transform?.rotationX || 0);
-  const rotationY = Number(activeAction?.transform?.rotationY || 0);
-  const rotationZ = Number(activeAction?.transform?.rotationZ || 0);
+  const yawOffset = Number(activeAction?.transform?.yawOffset ?? activeAction?.transform?.rotationZ ?? 0);
+  const modelRotationX = Number(activeAction?.transform?.modelRotationX ?? activeAction?.transform?.rotationX ?? 0);
+  const modelRotationY = Number(activeAction?.transform?.modelRotationY ?? activeAction?.transform?.rotationY ?? 0);
+  const modelRotationZ = Number(activeAction?.transform?.modelRotationZ ?? 0);
   const changeRotation = (field, delta) => {
     const current = Number(activeAction?.transform?.[field] || 0);
     onUpdateActionTransform?.(field, current + delta);
@@ -464,8 +456,8 @@ export default function TimelineMap3DPreview({
       pointerId: event.pointerId,
       x: event.clientX,
       y: event.clientY,
-      rotationX,
-      rotationZ,
+      modelRotationX,
+      yawOffset,
     };
   };
   const moveRotateDrag = (event) => {
@@ -474,8 +466,8 @@ export default function TimelineMap3DPreview({
     event.preventDefault();
     const dx = event.clientX - drag.x;
     const dy = event.clientY - drag.y;
-    onUpdateActionTransform?.("rotationZ", Number((drag.rotationZ + dx * 0.45).toFixed(1)));
-    onUpdateActionTransform?.("rotationX", Number((drag.rotationX - dy * 0.45).toFixed(1)));
+    onUpdateActionTransform?.("yawOffset", Number((drag.yawOffset + dx * 0.45).toFixed(1)));
+    onUpdateActionTransform?.("modelRotationX", Number((drag.modelRotationX - dy * 0.45).toFixed(1)));
   };
   const stopRotateDrag = (event) => {
     rotatePadRef.current = null;
@@ -491,6 +483,13 @@ export default function TimelineMap3DPreview({
           Mặt phẳng bản đồ giữ đúng tỉ lệ target AR. Kéo mốc hoặc asset để chỉnh X/Y; chỉnh Z, xoay và kích thước ở bảng thông số.
         </p>
       </div>
+      <button
+        type="button"
+        className="absolute bottom-4 left-4 rounded-lg bg-white px-3 py-2 text-xs font-black text-slate-950 shadow-lg"
+        onClick={() => resetViewRef.current?.()}
+      >
+        Nhìn từ trên
+      </button>
       {canRotate ? (
         <div className="absolute right-4 top-4 w-72 rounded-xl border border-white/10 bg-slate-950/88 p-3 text-white shadow-xl backdrop-blur">
           <div className="flex items-start justify-between gap-3">
@@ -502,9 +501,10 @@ export default function TimelineMap3DPreview({
               type="button"
               className="rounded-lg bg-white/10 px-2 py-1 text-xs font-black text-white"
               onClick={() => {
-                onUpdateActionTransform?.("rotationX", 0);
-                onUpdateActionTransform?.("rotationY", 0);
-                onUpdateActionTransform?.("rotationZ", 0);
+                onUpdateActionTransform?.("yawOffset", 0);
+                onUpdateActionTransform?.("modelRotationX", 0);
+                onUpdateActionTransform?.("modelRotationY", 0);
+                onUpdateActionTransform?.("modelRotationZ", 0);
               }}
             >
               Reset
@@ -512,11 +512,12 @@ export default function TimelineMap3DPreview({
           </div>
           <div className="mt-3 grid gap-2">
             {[
-              ["rotationX", "X", rotationX],
-              ["rotationY", "Y", rotationY],
-              ["rotationZ", "Z", rotationZ],
+              ["yawOffset", "Yaw", yawOffset],
+              ["modelRotationX", "Model X", modelRotationX],
+              ["modelRotationY", "Model Y", modelRotationY],
+              ["modelRotationZ", "Model Z", modelRotationZ],
             ].map(([field, label, value]) => (
-              <div key={field} className="grid grid-cols-[28px_1fr_1fr_52px] items-center gap-2">
+              <div key={field} className="grid grid-cols-[58px_1fr_1fr_52px] items-center gap-2">
                 <span className="text-xs font-black text-slate-300">{label}</span>
                 <button type="button" className="rounded-lg bg-white px-2 py-2 text-xs font-black text-slate-950" onClick={() => changeRotation(field, -5)}>
                   -5°
@@ -541,14 +542,14 @@ export default function TimelineMap3DPreview({
             <div>
               <div className="mx-auto mb-2 h-9 w-9 rounded-full border-2 border-amber-300 bg-amber-300/20 shadow-lg shadow-amber-300/20" />
               <p>Kéo trong ô này để xoay trực tiếp model</p>
-              <p className="mt-1 text-[11px] text-slate-400">Ngang: xoay Z | Dọc: xoay X</p>
+              <p className="mt-1 text-[11px] text-slate-400">Ngang: yaw | Dọc: model X</p>
             </div>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <button type="button" className="rounded-lg bg-amber-300 px-2 py-2 text-xs font-black text-slate-950" onClick={() => onUpdateActionTransform?.("rotationX", -90)}>
+            <button type="button" className="rounded-lg bg-amber-300 px-2 py-2 text-xs font-black text-slate-950" onClick={() => onUpdateActionTransform?.("modelRotationX", -90)}>
               Nằm trên bản đồ
             </button>
-            <button type="button" className="rounded-lg bg-white/10 px-2 py-2 text-xs font-black text-white" onClick={() => onUpdateActionTransform?.("rotationX", 0)}>
+            <button type="button" className="rounded-lg bg-white/10 px-2 py-2 text-xs font-black text-white" onClick={() => onUpdateActionTransform?.("modelRotationX", 0)}>
               Đứng thẳng
             </button>
           </div>

@@ -84,7 +84,7 @@
           "label": "Hieu ung moi",
           "assetPath": "/ar-assets/airplane.glb",
           "startAt": 0.3,
-          "duration": 17,
+          "duration": 26,
           "pointId": "tan-thanh",
           "position": {
             "x": 31.3,
@@ -104,7 +104,7 @@
             }
           ],
           "transform": {
-            "z": 0.38,
+            "z": 0.31,
             "scale": 0.25,
             "yawOffset": -90,
             "modelRotationX": 90,

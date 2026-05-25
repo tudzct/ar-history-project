@@ -1,7 +1,11 @@
 import { useRef, useState } from "react";
 import { CONFIG_URL, MAP_IMAGE, defaultAssetByType, normalizeConfig } from "./arConfigSchema.js";
 import { resolveActionMapPose, segmentDuration } from "./arTimelineEngine.js";
-import { pointToAR } from "./arCoordinates.js";
+import {
+  modelRotationToAFrame,
+  percentToAFramePosition,
+  yawToAFrameRotation,
+} from "./arSpace.js";
 
 const TARGET_MIND = "/ar-targets/dien_bien_phu_map.mind";
 const DEFAULT_MARKER_ASSET = "/ar-assets/flag-marker.glb";
@@ -52,73 +56,112 @@ async function loadArConfig() {
 }
 
 function markerMarkup(marker, calibration) {
-  const position = pointToAR(marker, calibration, marker.z || 0.02);
+  const position = percentToAFramePosition(marker, calibration, marker.z || 0.02);
   const color = marker.color || "#ef4444";
   const scale = Number(marker.scale || 0.35);
   const modelScale = 0.035 * scale;
   const ringInnerRadius = 0.03 * Math.max(0.4, scale);
   const ringOuterRadius = 0.045 * Math.max(0.4, scale);
+
+  // Hạ toàn bộ phần hiển thị của marker xuống gần mặt map.
+  // Parent marker vẫn là điểm neo thật.
+  // Chỉ visual bên trong bị hạ xuống.
+  const visualOffsetZ = Number(marker.visualOffsetZ ?? -0.045);
+
   return `
-    <a-entity class="hotspot marker-root" data-point="${escapeAttr(marker.id)}" position="${position}">
-      <a-sphere
-        class="hotspot"
-        data-point="${escapeAttr(marker.id)}"
-        radius="${(0.08 * Math.max(1, scale)).toFixed(3)}"
-        position="0 0 0.06"
-        material="opacity: 0; transparent: true"
-      ></a-sphere>
-      <a-ring
-        id="marker-ring-${escapeAttr(marker.id)}"
-        class="hotspot marker-ring"
-        data-point="${escapeAttr(marker.id)}"
-        radius-inner="${ringInnerRadius.toFixed(3)}"
-        radius-outer="${ringOuterRadius.toFixed(3)}"
-        position="0 0 0.004"
-        color="${color}"
-        opacity="0.85"
-      ></a-ring>
-      <a-entity
-        class="hotspot"
-        data-point="${escapeAttr(marker.id)}"
-        gltf-model="${DEFAULT_MARKER_ASSET}"
-        position="0 0 0.055"
-        rotation="90 0 0"
-        scale="${modelScale.toFixed(3)} ${modelScale.toFixed(3)} ${modelScale.toFixed(3)}"
-      ></a-entity>
-      <a-text
-        value="${escapeAttr(marker.label || marker.id)}"
-        align="center"
-        width="0.7"
-        position="0 0 0.13"
-        color="#ffffff"
-      ></a-text>
+    <a-entity
+      class="hotspot marker-root"
+      data-point="${escapeAttr(marker.id)}"
+      position="${position}"
+    >
+      <a-entity class="marker-visual" position="0 0 ${visualOffsetZ.toFixed(3)}">
+        <a-sphere
+          class="hotspot"
+          data-point="${escapeAttr(marker.id)}"
+          radius="${(0.08 * Math.max(1, scale)).toFixed(3)}"
+          position="0 0 0.06"
+          material="opacity: 0; transparent: true"
+        ></a-sphere>
+
+        <a-ring
+          id="marker-ring-${escapeAttr(marker.id)}"
+          class="hotspot marker-ring"
+          data-point="${escapeAttr(marker.id)}"
+          radius-inner="${ringInnerRadius.toFixed(3)}"
+          radius-outer="${ringOuterRadius.toFixed(3)}"
+          position="0 0 0.004"
+          color="${color}"
+          opacity="0.85"
+        ></a-ring>
+
+        <a-entity
+          class="hotspot"
+          data-point="${escapeAttr(marker.id)}"
+          gltf-model="${DEFAULT_MARKER_ASSET}"
+          position="0 0 0.055"
+          rotation="90 0 0"
+          scale="${modelScale.toFixed(3)} ${modelScale.toFixed(3)} ${modelScale.toFixed(3)}"
+        ></a-entity>
+
+        <a-text
+          value="${escapeAttr(marker.label || marker.id)}"
+          align="center"
+          width="0.7"
+          position="0 0 0.13"
+          color="#ffffff"
+        ></a-text>
+      </a-entity>
     </a-entity>
   `;
 }
 
-function actionBasePoint(action, marker) {
-  const point = action.path?.[0] || action.position || marker || { x: 50, y: 50, z: action.transform?.z || 0.08 };
-  return {
-    ...point,
-    x: Number(point.x || 50) + Number(action.transform?.offsetX || 0),
-    y: Number(point.y || 50) + Number(action.transform?.offsetY || 0),
-    z: Number(point.z || action.transform?.z || 0.08) + Number(action.transform?.offsetZ || 0),
-  };
+function calibrationGuideMarkup(calibration = {}) {
+  if (!calibration.showGuides) return "";
+  const guides = [
+    { id: "goc-tren-trai", label: "Goc tren trai", x: 0, y: 0, color: "#ef4444" },
+    { id: "goc-tren-phai", label: "Goc tren phai", x: 100, y: 0, color: "#22c55e" },
+    { id: "goc-duoi-phai", label: "Goc duoi phai", x: 100, y: 100, color: "#38bdf8" },
+    { id: "goc-duoi-trai", label: "Goc duoi trai", x: 0, y: 100, color: "#f97316" },
+    { id: "tam-ban-do", label: "Tam", x: 50, y: 50, color: "#facc15" },
+  ];
+  return guides.map((guide) => `
+    <a-entity position="${percentToAFramePosition({ x: guide.x, y: guide.y, z: 0.018 }, calibration, 0.018)}">
+      <a-ring radius-inner="0.018" radius-outer="0.027" color="${guide.color}" opacity="0.95"
+        animation="property: scale; from: 0.9 0.9 0.9; to: 1.5 1.5 1.5; dur: 650; dir: alternate; loop: true"></a-ring>
+      <a-text value="${guide.label}" align="center" width="0.55" position="0 0 0.055" color="#ffffff"></a-text>
+    </a-entity>
+  `).join("");
+}
+
+function localAxesMarkup(enabled = false) {
+  if (!enabled) return "";
+  return `
+    <a-cylinder radius="0.003" height="0.18" color="#ff0000" position="0.09 0 0" rotation="0 0 90"></a-cylinder>
+    <a-cylinder radius="0.003" height="0.18" color="#00ff00" position="0 0.09 0"></a-cylinder>
+    <a-cylinder radius="0.003" height="0.18" color="#0000ff" position="0 0 0.09" rotation="90 0 0"></a-cylinder>
+  `;
 }
 
 function actionMarkup(action, marker, index, calibration) {
   const transform = action.transform || {};
-  const position = pointToAR(actionBasePoint(action, marker), calibration, transform.z || 0.08);
+  const pose = resolveActionMapPose(action, marker, 0, calibration);
+  const position = percentToAFramePosition(pose.position, calibration, transform.z || 0.08);
   const id = `timeline-action-${index}`;
+  const modelId = `timeline-action-model-${index}`;
   const assetPath = action.assetPath || defaultAssetByType[action.type] || "";
-  const scale = Number(transform.scale || 1);
-  const rotation = `${Number(transform.rotationX || 0)} ${Number(transform.rotationY || 0)} ${Number(transform.rotationZ || 0)}`;
+  const scale = Number(pose.scale || 1);
+  const yawRotation = yawToAFrameRotation(pose.yaw);
+  const modelRotation = modelRotationToAFrame(pose.modelRotation);
+  const axes = localAxesMarkup(Boolean(transform.showLocalAxes));
   const label = action.label ? `<a-text value="${escapeAttr(action.label)}" align="center" width="0.7" position="0 0 0.12" color="#ffffff"></a-text>` : "";
 
   if (assetPath) {
     return `
-      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="${rotation}">
-        <a-entity gltf-model="${escapeAttr(mediaPathToUrl(assetPath))}" scale="0.03 0.03 0.03"></a-entity>
+      <a-entity id="${id}" class="timeline-action timeline-action-root" data-action-index="${index}" visible="false" position="${position}" rotation="${yawRotation}" scale="${scale} ${scale} ${scale}">
+        <a-entity id="${modelId}" class="timeline-action-model" rotation="${modelRotation}">
+          <a-entity gltf-model="${escapeAttr(mediaPathToUrl(assetPath))}" scale="0.03 0.03 0.03"></a-entity>
+          ${axes}
+        </a-entity>
         ${action.type === "bomb-drop" ? `<a-sphere class="bomb-flash" radius="0.045" color="#fb923c" opacity="0.85" position="0 0 -0.02" animation="property: scale; from: 0.5 0.5 0.5; to: 2 2 2; dur: 500; dir: alternate; loop: true"></a-sphere>` : ""}
         ${label}
       </a-entity>
@@ -127,9 +170,12 @@ function actionMarkup(action, marker, index, calibration) {
 
   if (action.type === "attack-arrow") {
     return `
-      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="${rotation}" scale="${scale} ${scale} ${scale}">
-        <a-cylinder radius="0.008" height="0.14" position="0 0 0" rotation="90 0 0" color="#22c55e"></a-cylinder>
-        <a-cone radius-bottom="0.028" radius-top="0" height="0.06" position="0 0.085 0" rotation="90 0 0" color="#22c55e"></a-cone>
+      <a-entity id="${id}" class="timeline-action timeline-action-root" data-action-index="${index}" visible="false" position="${position}" rotation="${yawRotation}" scale="${scale} ${scale} ${scale}">
+        <a-entity id="${modelId}" class="timeline-action-model" rotation="${modelRotation}">
+          <a-cylinder radius="0.008" height="0.14" position="0 0.07 0" color="#22c55e"></a-cylinder>
+          <a-cone radius-bottom="0.028" radius-top="0" height="0.06" position="0 0.16 0" color="#22c55e"></a-cone>
+          ${axes}
+        </a-entity>
         ${label}
       </a-entity>
     `;
@@ -137,18 +183,24 @@ function actionMarkup(action, marker, index, calibration) {
 
   if (action.type === "bomb-drop") {
     return `
-      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="${rotation}" scale="${scale} ${scale} ${scale}">
-        <a-sphere radius="0.035" color="#f97316" opacity="0.9" animation="property: scale; from: 0.4 0.4 0.4; to: 2.2 2.2 2.2; dur: 520; dir: alternate; loop: true"></a-sphere>
+      <a-entity id="${id}" class="timeline-action timeline-action-root" data-action-index="${index}" visible="false" position="${position}" rotation="${yawRotation}" scale="${scale} ${scale} ${scale}">
+        <a-entity id="${modelId}" class="timeline-action-model" rotation="${modelRotation}">
+          <a-sphere radius="0.035" color="#f97316" opacity="0.9" animation="property: scale; from: 0.4 0.4 0.4; to: 2.2 2.2 2.2; dur: 520; dir: alternate; loop: true"></a-sphere>
+          ${axes}
+        </a-entity>
         ${label}
       </a-entity>
     `;
   }
 
   return `
-    <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="${rotation}" scale="${scale} ${scale} ${scale}">
-      <a-ring radius-inner="0.045" radius-outer="0.06" color="#facc15" opacity="0.9"
-        animation="property: scale; from: 0.8 0.8 0.8; to: 1.7 1.7 1.7; dur: 700; dir: alternate; loop: true"></a-ring>
-      <a-sphere radius="0.014" position="0 0 0.04" color="#facc15"></a-sphere>
+    <a-entity id="${id}" class="timeline-action timeline-action-root" data-action-index="${index}" visible="false" position="${position}" rotation="${yawRotation}" scale="${scale} ${scale} ${scale}">
+      <a-entity id="${modelId}" class="timeline-action-model" rotation="${modelRotation}">
+        <a-ring radius-inner="0.045" radius-outer="0.06" color="#facc15" opacity="0.9"
+          animation="property: scale; from: 0.8 0.8 0.8; to: 1.7 1.7 1.7; dur: 700; dir: alternate; loop: true"></a-ring>
+        <a-sphere radius="0.014" position="0 0 0.04" color="#facc15"></a-sphere>
+        ${axes}
+      </a-entity>
       ${label}
     </a-entity>
   `;
@@ -180,7 +232,11 @@ function buildScene(targetUrl, config) {
         cursor="rayOrigin: mouse; fuse: false"
         raycaster="objects: .hotspot; far: 100"
       ></a-camera>
+      <a-entity light="type: ambient; color: #ffffff; intensity: 1.4"></a-entity>
+      <a-entity light="type: directional; color: #ffffff; intensity: 1.2" position="0 1 1"></a-entity>
+      <a-entity light="type: directional; color: #ffffff; intensity: 0.8" position="0 -1 1"></a-entity>
       <a-entity id="timelineTarget" mindar-image-target="targetIndex: 0">
+        ${calibrationGuideMarkup(config.calibration)}
         ${config.markers.map((marker) => markerMarkup(marker, config.calibration)).join("")}
         ${actions.map((action, index) => actionMarkup(action, config.markers.find((marker) => marker.id === action.pointId), index, config.calibration)).join("")}
       </a-entity>
@@ -243,10 +299,20 @@ export default function MapImageARScene() {
       const marker = config.markers.find((item) => item.id === action.pointId);
       const localElapsed = elapsed - start;
       const transform = action.transform || {};
-      const pose = resolveActionMapPose(action, marker, localElapsed);
-      entity.setAttribute("position", pointToAR(pose.position, config.calibration, transform.z || 0.08));
-      entity.setAttribute("rotation", `${pose.rotation.x} ${pose.rotation.y} ${pose.rotation.z}`);
+      const pose = resolveActionMapPose(action, marker, localElapsed, config.calibration);
+          if (action.type === "airplane") {
+      console.log("AIRPLANE POSE", {
+        id: action.id,
+        yaw: pose.yaw,
+        modelRotation: pose.modelRotation,
+        transform: action.transform,
+      });
+      }
+      entity.setAttribute("position", percentToAFramePosition(pose.position, config.calibration, transform.z || 0.08));
+      entity.setAttribute("rotation", yawToAFrameRotation(pose.yaw));
       entity.setAttribute("scale", `${pose.scale} ${pose.scale} ${pose.scale}`);
+      const modelEntity = scene.querySelector(`#timeline-action-model-${globalIndex}`);
+      modelEntity?.setAttribute("rotation", modelRotationToAFrame(pose.modelRotation));
     });
   };
 
@@ -347,6 +413,20 @@ export default function MapImageARScene() {
     try {
       await loadMindARScripts();
       const config = await loadArConfig();
+      console.table(
+        config.segments.flatMap((segment) =>
+          (segment.actions || []).map((action) => ({
+            id: action.id,
+            type: action.type,
+            yawOffset: action.transform?.yawOffset,
+            modelRotationX: action.transform?.modelRotationX,
+            modelRotationY: action.transform?.modelRotationY,
+            modelRotationZ: action.transform?.modelRotationZ,
+            followPathRotation: action.transform?.followPathRotation,
+            showLocalAxes: action.transform?.showLocalAxes,
+          }))
+        )
+      );
       configRef.current = config;
       actionListRef.current = flattenActions(config);
       setLoading({ active: true, title: "Đang mở camera", note: "Hãy cho phép quyền camera khi trình duyệt hỏi", progress: 90, error: "" });
@@ -377,7 +457,6 @@ export default function MapImageARScene() {
   };
 
   const stopMindAR = async () => {
-    removeArResize();
     removeScreenPicker();
     clearTimer();
     const scene = sceneRef.current;
