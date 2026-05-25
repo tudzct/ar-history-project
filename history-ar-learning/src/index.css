@@ -8,3 +8,33 @@ body {
   margin: 0;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
+
+.ar-scene-host,
+.ar-scene-host a-scene,
+.ar-scene-host canvas,
+.ar-scene-host video {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.ar-scene-host {
+  overflow: hidden;
+}
+
+.ar-scene-host a-scene,
+.ar-scene-host .a-canvas,
+.ar-scene-host canvas,
+.ar-scene-host video {
+  position: absolute !important;
+  inset: 0 !important;
+}
+
+.ar-scene-host canvas,
+.ar-scene-host video {
+  object-fit: cover !important;
+}
+
+.ar-scene-host .a-canvas,
+.ar-scene-host .mindar-ui-overlay {
+  inset: 0 !important;
+}

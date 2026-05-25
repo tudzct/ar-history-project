@@ -164,7 +164,7 @@ function buildScene(targetUrl, config) {
   const actions = flattenActions(config);
   return `
     <a-scene
-      mindar-image="imageTargetSrc: ${targetUrl}; autoStart: true; uiScanning: yes; uiLoading: yes; filterMinCF: 0.12; filterBeta: 80; warmupTolerance: 3; missTolerance: 8"
+      mindar-image="imageTargetSrc: ${targetUrl}; autoStart: true; uiScanning: yes; uiLoading: yes; filterMinCF: 0.0001; filterBeta: 1; warmupTolerance: 8; missTolerance: 20"
       color-space="sRGB"
       renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true; alpha: true"
       vr-mode-ui="enabled: false"
@@ -385,6 +385,7 @@ export default function MapImageARScene() {
   };
 
   const stopMindAR = async () => {
+    removeArResize();
     removeScreenPicker();
     clearTimer();
     const scene = sceneRef.current;
@@ -410,7 +411,13 @@ export default function MapImageARScene() {
   };
 
   return (
-    <div className="relative min-h-[560px] overflow-hidden rounded-[1.5rem] bg-slate-950">
+    <div
+      className={`overflow-hidden bg-slate-950 ${
+        running
+          ? "fixed inset-0 z-[9999] min-h-[100dvh] rounded-none"
+          : "relative min-h-[560px] rounded-[1.5rem]"
+      }`}
+    >
       {!running ? (
         <div className="absolute inset-0 grid place-items-center p-6 text-center text-white">
           <div className="max-w-md">
@@ -423,10 +430,10 @@ export default function MapImageARScene() {
         </div>
       ) : null}
 
-      <div ref={sceneHostRef} className="absolute inset-0 z-0 [&_a-scene]:h-full [&_a-scene]:w-full" />
+      <div ref={sceneHostRef} className="ar-scene-host absolute inset-0 z-0" />
 
       {loading.active ? (
-        <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-slate-950/72 p-6 text-white backdrop-blur-sm">
+        <div className="pointer-events-none absolute inset-0 z-50 grid place-items-center bg-slate-950/72 p-6 text-white backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-[1.5rem] border border-white/10 bg-slate-950/85 p-5 shadow-2xl">
             <div className="flex items-center justify-between gap-4">
               <div>
