@@ -456,6 +456,19 @@ export default function TimelineMap3DPreview({
     const current = Number(activeAction?.transform?.[field] || 0);
     onUpdateActionTransform?.(field, current + delta);
   };
+  const patchSelectedActionTransform = (patch) => {
+    if (!activeAction || selected?.kind !== "action") return;
+    onUpdateAction?.(selected.segmentIndex, selected.actionIndex, {
+      transform: { ...(activeAction.transform || {}), ...patch },
+    });
+  };
+  const levelSelectedActionOnMap = () => {
+    patchSelectedActionTransform({
+      rotationX: -90,
+      rotationY: 0,
+      rotationZ: activeAction.type === "airplane" ? 45 : rotationZ,
+    });
+  };
   const startRotateDrag = (event) => {
     if (!activeAction) return;
     event.preventDefault();
@@ -501,11 +514,7 @@ export default function TimelineMap3DPreview({
             <button
               type="button"
               className="rounded-lg bg-white/10 px-2 py-1 text-xs font-black text-white"
-              onClick={() => {
-                onUpdateActionTransform?.("rotationX", 0);
-                onUpdateActionTransform?.("rotationY", 0);
-                onUpdateActionTransform?.("rotationZ", 0);
-              }}
+              onClick={() => patchSelectedActionTransform({ rotationX: 0, rotationY: 0, rotationZ: 0 })}
             >
               Reset
             </button>
@@ -545,10 +554,10 @@ export default function TimelineMap3DPreview({
             </div>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <button type="button" className="rounded-lg bg-amber-300 px-2 py-2 text-xs font-black text-slate-950" onClick={() => onUpdateActionTransform?.("rotationX", -90)}>
+            <button type="button" className="rounded-lg bg-amber-300 px-2 py-2 text-xs font-black text-slate-950" onClick={levelSelectedActionOnMap}>
               Nằm trên bản đồ
             </button>
-            <button type="button" className="rounded-lg bg-white/10 px-2 py-2 text-xs font-black text-white" onClick={() => onUpdateActionTransform?.("rotationX", 0)}>
+            <button type="button" className="rounded-lg bg-white/10 px-2 py-2 text-xs font-black text-white" onClick={() => patchSelectedActionTransform({ rotationX: 0, rotationY: 0 })}>
               Đứng thẳng
             </button>
           </div>

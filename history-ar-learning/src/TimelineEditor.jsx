@@ -111,6 +111,25 @@ function Quick3DControls({
     nextPath[selected.pathIndex] = { ...nextPath[selected.pathIndex], ...patch };
     patchAction({ path: nextPath });
   };
+  const levelActionOnMap = () => {
+    patchAction({
+      transform: {
+        ...(activeAction.transform || {}),
+        rotationX: -90,
+        rotationY: 0,
+        rotationZ: activeAction.type === "airplane" ? 45 : transformValue(activeAction, "rotationZ", 0),
+      },
+    });
+  };
+  const standActionUpright = () => {
+    patchAction({
+      transform: {
+        ...(activeAction.transform || {}),
+        rotationX: 0,
+        rotationY: 0,
+      },
+    });
+  };
 
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200">
@@ -177,10 +196,10 @@ function Quick3DControls({
             <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("rotationZ", transformValue(activeAction, "rotationZ", 0) + 15)}>
               Xoay phải 15°
             </button>
-            <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("rotationX", -90)}>
+            <button type="button" className={buttonClass()} onClick={levelActionOnMap}>
               Đặt nằm trên bản đồ
             </button>
-            <button type="button" className={buttonClass()} onClick={() => onUpdateActionTransform("rotationX", 0)}>
+            <button type="button" className={buttonClass()} onClick={standActionUpright}>
               Đặt đứng thẳng
             </button>
           </div>
