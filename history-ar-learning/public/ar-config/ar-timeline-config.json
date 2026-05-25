@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "calibration": {
     "offsetX": 0,
     "offsetY": 0,
@@ -39,80 +40,157 @@
   ],
   "markers": [
     {
-      "markerScale": 0.25,
-      "videoPath": "",
       "id": "him-lam",
       "label": "Him Lam",
-      "x": 38.9,
-      "y": 58.6,
-      "color": "#ef4444"
+      "x": 84.9,
+      "y": 70.1,
+      "z": 0,
+      "scale": 0.2,
+      "color": "#ef4444",
+      "videoPath": "\"D:\\ghichep_monhoc\\Ky2_nam3\\CDKHMT\\HimLam\\HimLam(Moc_1).mp4\"",
+      "markerScale": 0.25
     },
     {
-      "markerScale": 0.25,
-      "videoPath": "",
       "id": "muong-thanh",
       "label": "Muong Thanh",
-      "x": 25.8,
-      "y": 77.8,
-      "color": "#f59e0b"
+      "x": 50.3,
+      "y": 80.6,
+      "z": 0,
+      "scale": 0.2,
+      "color": "#f59e0b",
+      "videoPath": "",
+      "markerScale": 0.25
     },
     {
-      "markerScale": 0.25,
-      "videoPath": "",
       "id": "tan-thanh",
       "label": "Tan Thanh",
-      "x": 25.9,
-      "y": 69.5,
-      "color": "#8b5cf6"
+      "x": 23.9,
+      "y": 70.5,
+      "z": 0,
+      "scale": 0.2,
+      "color": "#8b5cf6",
+      "videoPath": "",
+      "markerScale": 0.25
     },
     {
-      "markerScale": 0.25,
-      "videoPath": "",
       "id": "thanh-minh",
       "label": "Thanh Minh",
-      "x": 60.7,
-      "y": 38.9,
-      "color": "#22c55e"
+      "x": 55,
+      "y": 31.7,
+      "z": 0,
+      "scale": 0.2,
+      "color": "#22c55e",
+      "videoPath": "",
+      "markerScale": 0.25
     },
     {
-      "markerScale": 0.25,
-      "videoPath": "",
       "id": "ta-leng",
       "label": "Ta Leng",
-      "x": 67.9,
-      "y": 75.6,
-      "color": "#38bdf8"
+      "x": 64.3,
+      "y": 77.9,
+      "z": 0,
+      "scale": 0.2,
+      "color": "#38bdf8",
+      "videoPath": "",
+      "markerScale": 0.25
     }
   ],
-  "timeline": [
+  "segments": [
     {
       "id": "after-him-lam",
       "title": "Dan tiep sau khi tat tran Him Lam",
       "audioPath": "\"D:\\ghichep_monhoc\\Ky2_nam3\\CDKHMT\\0523.MP3\"",
-      "narration": "Phat sau khi nguoi dung dong cua so tran Him Lam, dan sang moc tiep theo.",
-      "autoPlayAfterStart": false,
-      "waitForPointClose": "him-lam",
+      "startAt": 0,
+      "duration": 0.5,
+      "nextMarkerId": "him-lam",
       "actions": [
         {
-          "position": "75.5,72.0",
+          "id": "action-1779608197009-259",
+          "type": "airplane",
+          "label": "Hieu ung moi",
+          "assetPath": "/ar-assets/airplane.glb",
+          "startAt": 2.3,
+          "duration": 27.7,
+          "pointId": "tan-thanh",
+          "position": {
+            "x": 31.3,
+            "y": 44.7,
+            "z": 0.21
+          },
+          "path": [
+            {
+              "x": 80.3,
+              "y": 81.4,
+              "z": 0.21
+            },
+            {
+              "x": 25.3,
+              "y": 32.1,
+              "z": 0.21
+            }
+          ],
+          "transform": {
+            "z": 0.21,
+            "scale": 0.25,
+            "rotationX": -0.4,
+            "rotationY": 47,
+            "rotationZ": 141.1,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "followPathRotation": true
+          },
           "rotation": -88.9,
           "rotationX": -84,
           "rotationY": 37,
           "rotationZ": -88.9,
           "scale": 0.81,
-          "id": "action-1779608197009-259",
-          "type": "airplane",
           "at": 2.3,
-          "duration": 27.7,
-          "pointId": "tan-thanh",
-          "label": "Hieu ung moi",
           "color": "#ef4444",
-          "assetPath": "",
           "from": "78.7,81.8",
           "to": "25.9,25.0"
+        },
+        {
+          "id": "action-1779701063778-165",
+          "type": "attack-arrow",
+          "label": "attack-arrow",
+          "assetPath": "/ar-assets/attack-arrow.glb",
+          "startAt": 0,
+          "duration": 5,
+          "pointId": "thanh-minh",
+          "position": {
+            "x": 50,
+            "y": 50,
+            "z": 0.08
+          },
+          "path": [
+            {
+              "x": 42,
+              "y": 56.9,
+              "z": 0.08
+            },
+            {
+              "x": 63.4,
+              "y": 44.2,
+              "z": 0.08
+            }
+          ],
+          "transform": {
+            "z": 0.08,
+            "scale": 1,
+            "rotationX": -202.2,
+            "rotationY": 40,
+            "rotationZ": -50,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "followPathRotation": true
+          }
         }
       ],
-      "duration": 0.5
+      "narration": "Phat sau khi nguoi dung dong cua so tran Him Lam, dan sang moc tiep theo.",
+      "autoPlayAfterStart": false,
+      "waitForPointClose": "him-lam"
     }
   ]
 }

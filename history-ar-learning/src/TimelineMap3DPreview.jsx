@@ -2,36 +2,11 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { MAP_IMAGE } from "./arTimelineConfig.js";
+import { MAP_IMAGE, defaultAssetByType } from "./arConfigSchema.js";
+import { TARGET_ASPECT, clamp } from "./arCoordinates.js";
+import { getActionPoint, getActionRotation } from "./arTimelineEngine.js";
 
-const defaultAssetByType = {
-  "attack-arrow": "/ar-assets/attack-arrow.glb",
-  airplane: "/ar-assets/airplane.glb",
-  "open-point": "/ar-assets/flag-marker.glb",
-  "show-label": "/ar-assets/flag-marker.glb",
-};
-
-function parsePair(value) {
-  if (!value) return null;
-  const [x, y] = String(value).split(",").map((item) => Number(item.trim()));
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
-  return { x, y };
-}
-
-function mapPoint(point) {
-  return new THREE.Vector3(point.x / 100 - 0.5, 0.03, point.y / 100 - 0.5);
-}
-
-function scenePointToPercent(point) {
-  return {
-    x: Number(Math.max(0, Math.min(100, (point.x + 0.5) * 100)).toFixed(1)),
-    y: Number(Math.max(0, Math.min(100, (point.z + 0.5) * 100)).toFixed(1)),
-  };
-}
-
-function pairValue(point) {
-  return `${point.x.toFixed(1)},${point.y.toFixed(1)}`;
-}
+const MARKER_ASSET = "/ar-assets/flag-marker.glb";
 
 function mediaPathToUrl(filePath = "") {
   const cleanPath = String(filePath).trim().replace(/^["']|["']$/g, "");
@@ -40,92 +15,156 @@ function mediaPathToUrl(filePath = "") {
   return `/@fs/${encodeURI(cleanPath.replaceAll("\\", "/"))}`;
 }
 
-function pathPoints(action) {
-  const points = Array.isArray(action?.path) ? action.path.map(parsePair).filter(Boolean) : [];
-  const from = parsePair(action?.from);
-  const to = parsePair(action?.to);
-  return points.length >= 2 ? points : from && to ? [from, to] : points;
+function mapPoint(point, fallbackZ = 0) {
+  return new THREE.Vector3(
+    Number(point?.x ?? 50) / 100 - 0.5,
+    Number(point?.z ?? fallbackZ),
+    (0.5 - Number(point?.y ?? 50) / 100) * TARGET_ASPECT
+  );
 }
 
-function pointOnPath(points, progress) {
-  if (!points.length) return null;
-  if (points.length === 1) return points[0];
-  const segments = points.slice(0, -1).map((point, index) => {
-    const next = points[index + 1];
-    const length = Math.hypot(next.x - point.x, next.y - point.y);
-    return { point, next, length };
-  });
-  const total = segments.reduce((sum, segment) => sum + segment.length, 0) || 1;
-  let distance = Math.max(0, Math.min(1, progress)) * total;
-  for (const segment of segments) {
-    if (distance <= segment.length) {
-      const local = segment.length ? distance / segment.length : 0;
-      return {
-        x: segment.point.x + (segment.next.x - segment.point.x) * local,
-        y: segment.point.y + (segment.next.y - segment.point.y) * local,
-      };
-    }
-    distance -= segment.length;
-  }
-  return points[points.length - 1];
+function scenePointToPercent(point) {
+  return {
+    x: Number(clamp((point.x + 0.5) * 100).toFixed(1)),
+    y: Number(clamp((0.5 - point.z / TARGET_ASPECT) * 100).toFixed(1)),
+  };
 }
 
-function makeFallbackMarker(color) {
+function applyARRotation(object, rotation) {
+  object.rotation.set(
+    THREE.MathUtils.degToRad(rotation.x),
+    THREE.MathUtils.degToRad(rotation.z),
+    THREE.MathUtils.degToRad(rotation.y)
+  );
+}
+
+function makeFallbackMarker(color = "#ef4444") {
   const group = new THREE.Group();
-  const pin = new THREE.Mesh(
-    new THREE.ConeGeometry(0.025, 0.09, 24),
+  const stem = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.01, 0.012, 0.08, 18),
     new THREE.MeshStandardMaterial({ color })
   );
-  pin.rotation.x = Math.PI;
-  pin.position.y = 0.08;
-  group.add(pin);
+  stem.position.y = 0.04;
+  group.add(stem);
   const head = new THREE.Mesh(
     new THREE.SphereGeometry(0.028, 24, 16),
-    new THREE.MeshStandardMaterial({ color })
+    new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.2 })
   );
-  head.position.y = 0.14;
+  head.position.y = 0.09;
   group.add(head);
   return group;
 }
 
-function makePath(points, color) {
+function makeFallbackAction(type, color = "#facc15") {
   const group = new THREE.Group();
-  for (let index = 0; index < points.length - 1; index += 1) {
-    const start = mapPoint(points[index]);
-    const end = mapPoint(points[index + 1]);
-    const direction = new THREE.Vector3().subVectors(end, start);
-    const length = direction.length();
-    const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-    const cylinder = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.006, 0.006, length, 12),
+  if (type === "attack-arrow") {
+    const shaft = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.006, 0.006, 0.16, 12),
       new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.25 })
     );
-    cylinder.position.copy(mid);
-    cylinder.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.normalize());
-    group.add(cylinder);
+    shaft.rotation.z = Math.PI / 2;
+    group.add(shaft);
+    const head = new THREE.Mesh(
+      new THREE.ConeGeometry(0.025, 0.06, 18),
+      new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.25 })
+    );
+    head.position.x = 0.09;
+    head.rotation.z = -Math.PI / 2;
+    group.add(head);
+    return group;
   }
-  const end = mapPoint(points[points.length - 1]);
-  const cone = new THREE.Mesh(
-    new THREE.ConeGeometry(0.025, 0.06, 20),
+  const body = new THREE.Mesh(
+    new THREE.SphereGeometry(type === "bomb-drop" ? 0.035 : 0.028, 24, 16),
     new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.25 })
   );
-  cone.position.copy(end);
-  cone.position.y += 0.015;
-  cone.rotation.x = Math.PI / 2;
-  group.add(cone);
+  group.add(body);
   return group;
+}
+
+function addPath(root, points, color, active = false, hitObjects = [], selectedPathIndex = -1) {
+  if (!points || points.length < 2) return;
+  const material = new THREE.LineBasicMaterial({ color, linewidth: 2 });
+  const geometry = new THREE.BufferGeometry().setFromPoints(points.map((point) => mapPoint(point, point.z ?? 0.04)));
+  const line = new THREE.Line(geometry, material);
+  line.position.y += active ? 0.018 : 0.01;
+  root.add(line);
+  points.forEach((point, index) => {
+    const selected = active && selectedPathIndex === index;
+    const dot = new THREE.Mesh(
+      new THREE.SphereGeometry(selected ? 0.026 : active ? 0.018 : 0.012, 16, 12),
+      new THREE.MeshStandardMaterial({ color: selected ? 0xfacc15 : color, emissive: selected ? 0xfacc15 : color, emissiveIntensity: selected ? 0.9 : active ? 0.6 : 0.2 })
+    );
+    dot.position.copy(mapPoint(point, point.z ?? 0.04));
+    dot.userData = { type: "path", pathIndex: index };
+    root.add(dot);
+    if (selected) addSelectionPulse(root, dot.position.clone(), 0xfacc15, 0.05);
+    hitObjects.push(dot);
+  });
+}
+
+function addSelectionPulse(root, position, color = 0xfacc15, radius = 0.08) {
+  const group = new THREE.Group();
+  group.position.copy(position);
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(radius, 0.005, 12, 56),
+    new THREE.MeshStandardMaterial({
+      color,
+      emissive: color,
+      emissiveIntensity: 0.8,
+      transparent: true,
+      opacity: 0.95,
+    })
+  );
+  ring.rotation.x = Math.PI / 2;
+  group.add(ring);
+  const halo = new THREE.Mesh(
+    new THREE.SphereGeometry(radius * 0.42, 24, 16),
+    new THREE.MeshBasicMaterial({
+      color,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+    })
+  );
+  halo.position.y = radius * 0.18;
+  group.add(halo);
+  group.userData.pulse = true;
+  root.add(group);
+  return group;
+}
+
+function disposeObject(object) {
+  object.traverse((item) => {
+    item.geometry?.dispose?.();
+    if (item.material) {
+      const materials = Array.isArray(item.material) ? item.material : [item.material];
+      materials.forEach((material) => {
+        material.map?.dispose?.();
+        material.dispose?.();
+      });
+    }
+  });
 }
 
 export default function TimelineMap3DPreview({
   state,
+  activeSegment,
   activeAction,
-  activeMarkerId,
+  selected,
+  mapMode,
   playTime,
-  onSelectMarker,
+  onSelect,
+  onPlacePoint,
   onUpdateMarker,
   onUpdateAction,
+  onUpdateActionTransform,
 }) {
   const hostRef = useRef(null);
+  const rotatePadRef = useRef(null);
+  const cameraStateRef = useRef({
+    position: [0.15, 1.25, 1.35],
+    target: [0, 0.02, 0],
+  });
 
   useEffect(() => {
     const host = hostRef.current;
@@ -133,8 +172,8 @@ export default function TimelineMap3DPreview({
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f172a);
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 10);
-    camera.position.set(0.1, 1.1, 1.25);
+    const camera = new THREE.PerspectiveCamera(44, 1, 0.01, 20);
+    camera.position.fromArray(cameraStateRef.current.position);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -142,117 +181,154 @@ export default function TimelineMap3DPreview({
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.target.set(0, 0, 0);
+    controls.target.fromArray(cameraStateRef.current.target);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 2.2));
-    const sun = new THREE.DirectionalLight(0xffffff, 2.5);
-    sun.position.set(0.5, 1, 0.6);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 2.1));
+    const sun = new THREE.DirectionalLight(0xffffff, 2.4);
+    sun.position.set(0.45, 1.2, 0.65);
     scene.add(sun);
 
     const root = new THREE.Group();
     scene.add(root);
-    const interactiveObjects = [];
+    const hitObjects = [];
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
     const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const dragPoint = new THREE.Vector3();
     let dragTarget = null;
 
+    const axes = new THREE.AxesHelper(0.34);
+    axes.position.set(-0.43, 0.035, -0.43 * TARGET_ASPECT);
+    root.add(axes);
+    const makeAxisLabel = (text, color, position) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 128;
+      canvas.height = 64;
+      const context = canvas.getContext("2d");
+      context.fillStyle = color;
+      context.font = "700 34px Arial, sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(text, 64, 32);
+      const texture = new THREE.CanvasTexture(canvas);
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
+      sprite.position.copy(position);
+      sprite.scale.set(0.09, 0.045, 1);
+      root.add(sprite);
+    };
+    makeAxisLabel("X", "#ef4444", new THREE.Vector3(-0.08, 0.035, -0.43 * TARGET_ASPECT));
+    makeAxisLabel("Cao", "#22c55e", new THREE.Vector3(-0.43, 0.36, -0.43 * TARGET_ASPECT));
+    makeAxisLabel("Y map", "#38bdf8", new THREE.Vector3(-0.43, 0.035, (-0.43 * TARGET_ASPECT) + 0.34));
+
     new THREE.TextureLoader().load(MAP_IMAGE, (texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
       const map = new THREE.Mesh(
-        new THREE.PlaneGeometry(1, 1.05),
+        new THREE.PlaneGeometry(1, TARGET_ASPECT),
         new THREE.MeshBasicMaterial({ map: texture })
       );
-      map.rotation.x = -Math.PI / 2;
+      map.rotation.x = Math.PI / 2;
+      map.userData = { type: "map" };
       root.add(map);
+      hitObjects.push(map);
     });
 
     const loader = new GLTFLoader();
     const addModel = (path, fallback, setup) => {
-      if (!path) {
+      const normalizedPath = path ? mediaPathToUrl(path) : "";
+      if (!normalizedPath) {
         setup(fallback());
         return;
       }
-      loader.load(
-        path,
-        (gltf) => setup(gltf.scene),
-        undefined,
-        () => setup(fallback())
-      );
+      loader.load(normalizedPath, (gltf) => setup(gltf.scene), undefined, () => setup(fallback()));
     };
 
     (state.markers || []).forEach((marker) => {
-      addModel("/ar-assets/flag-marker.glb", () => makeFallbackMarker(marker.color || "#ef4444"), (object) => {
-        object.position.copy(mapPoint(marker));
-        object.position.y = 0.07;
-        const scale = 0.08 * Number(marker.markerScale || 1);
-        object.scale.setScalar(scale);
+      addModel(MARKER_ASSET, () => makeFallbackMarker(marker.color), (object) => {
+        const isActive = selected?.kind === "marker" && selected.markerId === marker.id;
+        object.position.copy(mapPoint(marker, marker.z || 0.02));
+        object.position.y += 0.05;
+        object.scale.setScalar(0.035 * Number(marker.scale || 0.35));
         root.add(object);
-      });
-      const hit = new THREE.Mesh(
-        new THREE.SphereGeometry(0.055 * Number(marker.markerScale || 1), 16, 12),
-        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
-      );
-      hit.position.copy(mapPoint(marker));
-      hit.position.y = 0.12;
-      hit.userData = { type: "marker", markerId: marker.id };
-      root.add(hit);
-      interactiveObjects.push(hit);
-    });
-
-    (state.timeline || []).forEach((segment) => {
-      (segment.actions || []).forEach((action) => {
-        const from = parsePair(action.from);
-        const to = parsePair(action.to);
-        const points = action.path?.length ? action.path.map(parsePair).filter(Boolean) : from && to ? [from, to] : [];
-        if (points.length >= 2) {
-          root.add(makePath(points, action.color || "#ef4444"));
+        if (isActive) {
+          object.traverse((child) => {
+            if (child.material?.emissive) {
+              child.material = child.material.clone();
+              child.material.emissive.set(0xfacc15);
+              child.material.emissiveIntensity = 0.45;
+            }
+          });
+        }
+        const hit = new THREE.Mesh(
+          new THREE.SphereGeometry(0.06 * Math.max(1, Number(marker.scale || 0.35)), 16, 12),
+          new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
+        );
+        hit.position.copy(object.position);
+        hit.userData = { type: "marker", markerId: marker.id };
+        root.add(hit);
+        hitObjects.push(hit);
+        if (isActive) {
+          const pulsePosition = mapPoint(marker, marker.z || 0.02);
+          pulsePosition.y += 0.025;
+          addSelectionPulse(root, pulsePosition, 0xfacc15, 0.07);
         }
       });
     });
 
-    if (activeAction) {
-      const points = pathPoints(activeAction);
-      const position = parsePair(activeAction.position);
-      const marker = state.markers?.find((item) => item.id === activeAction.pointId);
-      const progress = Math.max(0, Math.min(1, (playTime - Number(activeAction.at || 0)) / Math.max(0.1, Number(activeAction.duration || 1))));
-      const point = points.length >= 2 ? pointOnPath(points, progress) : position || marker;
-      if (point) {
-        const color = activeAction.color || "#facc15";
-        const active = new THREE.Mesh(
-          new THREE.TorusGeometry(0.06, 0.006, 12, 64),
-          new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.55 })
-        );
-        active.position.copy(mapPoint(point));
-        active.position.y = 0.075;
-        active.rotation.x = Math.PI / 2;
-        root.add(active);
+    (activeSegment?.actions || []).forEach((action, actionIndex) => {
+      const isSelected = selected?.kind === "action" && selected.actionIndex === actionIndex;
+      const isPlaying = playTime >= Number(action.startAt || 0) && playTime <= Number(action.startAt || 0) + Number(action.duration || 0);
+      const marker = state.markers?.find((item) => item.id === action.pointId);
+      const elapsed = Math.max(0, playTime - Number(action.startAt || 0));
+      const point = isPlaying || isSelected ? getActionPoint(action, marker, elapsed) : action.position || marker;
+      const transform = action.transform || {};
+      const color = isSelected ? 0xfacc15 : action.type === "airplane" ? 0x38bdf8 : action.type === "bomb-drop" ? 0xf97316 : 0x22c55e;
 
-        const assetPath = activeAction.assetPath || defaultAssetByType[activeAction.type] || "";
-        addModel(assetPath ? mediaPathToUrl(assetPath) : "", () => makeFallbackMarker(color), (object) => {
-          object.position.copy(mapPoint(point));
-          object.position.y = 0.14;
-          const scale = 0.08 * Number(activeAction.scale || 1);
-          object.scale.setScalar(scale);
-          object.rotation.set(
-            THREE.MathUtils.degToRad(Number(activeAction.rotationX || 0)),
-            THREE.MathUtils.degToRad(Number(activeAction.rotationY || 0)),
-            THREE.MathUtils.degToRad(Number(activeAction.rotationZ ?? activeAction.rotation ?? 0))
-          );
-          root.add(object);
-        });
+      addPath(
+        root,
+        action.path || [],
+        isSelected ? 0xfacc15 : 0x22c55e,
+        isSelected,
+        isSelected ? hitObjects : [],
+        selected?.kind === "path" && selected.actionIndex === actionIndex ? selected.pathIndex : -1
+      );
+      if (!point || (!isSelected && !isPlaying && action.type !== "highlight-marker" && action.type !== "open-video-marker")) return;
+
+      const position = {
+        ...point,
+        x: Number(point.x || 50) + Number(transform.offsetX || 0),
+        y: Number(point.y || 50) + Number(transform.offsetY || 0),
+        z: Number(point.z || transform.z || 0.08) + Number(transform.offsetZ || 0),
+      };
+      const assetPath = action.assetPath || defaultAssetByType[action.type] || "";
+      addModel(assetPath, () => makeFallbackAction(action.type, color), (object) => {
+        const rotation = getActionRotation(action, elapsed);
+        const isSelectedAction = selected?.kind === "action" && selected.actionIndex === actionIndex;
+        object.position.copy(mapPoint(position, transform.z || 0.08));
+        object.scale.setScalar(0.03 * Number(transform.scale || 1));
+        applyARRotation(object, rotation);
+        root.add(object);
+        if (isSelectedAction) {
+          object.traverse((child) => {
+            if (child.material?.emissive) {
+              child.material = child.material.clone();
+              child.material.emissive.set(0xfacc15);
+              child.material.emissiveIntensity = 0.5;
+            }
+          });
+          const pulsePosition = object.position.clone();
+          pulsePosition.y += 0.015;
+          addSelectionPulse(root, pulsePosition, 0xfacc15, 0.085 * Math.max(1, Number(transform.scale || 1)));
+        }
         const hit = new THREE.Mesh(
-          new THREE.SphereGeometry(0.075 * Number(activeAction.scale || 1), 16, 12),
+          new THREE.SphereGeometry(0.08 * Math.max(1, Number(transform.scale || 1)), 16, 12),
           new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
         );
-        hit.position.copy(mapPoint(point));
-        hit.position.y = 0.14;
-        hit.userData = { type: "action" };
+        hit.position.copy(object.position);
+        hit.userData = { type: "action", actionIndex };
         root.add(hit);
-        interactiveObjects.push(hit);
-      }
-    }
+        hitObjects.push(hit);
+      });
+    });
 
     const setPointer = (event) => {
       const rect = renderer.domElement.getBoundingClientRect();
@@ -261,47 +337,63 @@ export default function TimelineMap3DPreview({
       raycaster.setFromCamera(pointer, camera);
     };
 
-    const activePathIndex = () => {
-      const points = Array.isArray(activeAction?.path) ? activeAction.path.map(parsePair).filter(Boolean) : [];
-      if (!points.length) return -1;
-      const progress = Math.max(0, Math.min(1, (playTime - Number(activeAction.at || 0)) / Math.max(0.1, Number(activeAction.duration || 1))));
-      return Math.max(0, Math.min(points.length - 1, Math.round(progress * (points.length - 1))));
+    const placeFromEvent = (event) => {
+      setPointer(event);
+      if (!raycaster.ray.intersectPlane(dragPlane, dragPoint)) return null;
+      return scenePointToPercent(dragPoint);
     };
 
     const updateDraggedTarget = (event) => {
       if (!dragTarget) return;
-      setPointer(event);
-      if (!raycaster.ray.intersectPlane(dragPlane, dragPoint)) return;
-      const nextPoint = scenePointToPercent(dragPoint);
-
+      const point = placeFromEvent(event);
+      if (!point) return;
       if (dragTarget.type === "marker") {
-        onSelectMarker?.(dragTarget.markerId);
-        onUpdateMarker?.(dragTarget.markerId, "x", nextPoint.x);
-        onUpdateMarker?.(dragTarget.markerId, "y", nextPoint.y);
-        return;
+        onUpdateMarker?.(dragTarget.markerId, { x: point.x, y: point.y });
       }
-
       if (dragTarget.type === "action") {
-        const pathIndex = activePathIndex();
-        if (pathIndex >= 0) {
-          const nextPath = [...(activeAction.path || [])];
-          nextPath[pathIndex] = pairValue(nextPoint);
-          onUpdateAction?.("path", nextPath);
-          return;
-        }
-        onUpdateAction?.("position", pairValue(nextPoint));
+        const action = activeSegment?.actions?.[dragTarget.actionIndex];
+        onUpdateAction?.(selected.segmentIndex, dragTarget.actionIndex, {
+          position: { ...(action?.position || {}), x: point.x, y: point.y },
+        });
+      }
+      if (dragTarget.type === "path") {
+        const nextPath = [...(activeAction?.path || [])];
+        nextPath[dragTarget.pathIndex] = { ...nextPath[dragTarget.pathIndex], x: point.x, y: point.y };
+        onUpdateAction?.(selected.segmentIndex, selected.actionIndex, { path: nextPath });
       }
     };
 
     const handlePointerDown = (event) => {
       setPointer(event);
-      const hit = raycaster.intersectObjects(interactiveObjects, true)[0]?.object;
+      const hit = raycaster.intersectObjects(hitObjects, true)[0]?.object;
       if (!hit) return;
+      const userData = hit.userData || {};
       event.preventDefault();
-      dragTarget = hit.userData;
-      controls.enabled = false;
-      renderer.domElement.setPointerCapture?.(event.pointerId);
-      updateDraggedTarget(event);
+      if (userData.type === "marker") {
+        onSelect?.({ kind: "marker", markerId: userData.markerId });
+        dragTarget = userData;
+        controls.enabled = false;
+        renderer.domElement.setPointerCapture?.(event.pointerId);
+        return;
+      }
+      if (userData.type === "action") {
+        onSelect?.({ kind: "action", actionIndex: userData.actionIndex });
+        dragTarget = userData;
+        controls.enabled = false;
+        renderer.domElement.setPointerCapture?.(event.pointerId);
+        return;
+      }
+      if (userData.type === "path") {
+        onSelect?.({ kind: "path", pathIndex: userData.pathIndex });
+        dragTarget = userData;
+        controls.enabled = false;
+        renderer.domElement.setPointerCapture?.(event.pointerId);
+        return;
+      }
+      if (userData.type === "map") {
+        const point = placeFromEvent(event);
+        if (point) onPlacePoint?.(point);
+      }
     };
 
     const handlePointerMove = (event) => {
@@ -322,8 +414,8 @@ export default function TimelineMap3DPreview({
     renderer.domElement.addEventListener("pointercancel", handlePointerUp);
 
     const resize = () => {
-      const width = host.clientWidth || 640;
-      const height = host.clientHeight || 420;
+      const width = host.clientWidth || 720;
+      const height = host.clientHeight || 560;
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
@@ -333,11 +425,22 @@ export default function TimelineMap3DPreview({
     resize();
 
     renderer.setAnimationLoop(() => {
+      const time = performance.now() * 0.004;
+      root.traverse((object) => {
+        if (object.userData?.pulse) {
+          const scale = 1 + Math.sin(time) * 0.16;
+          object.scale.setScalar(scale);
+        }
+      });
       controls.update();
       renderer.render(scene, camera);
     });
 
     return () => {
+      cameraStateRef.current = {
+        position: camera.position.toArray(),
+        target: controls.target.toArray(),
+      };
       renderer.setAnimationLoop(null);
       observer.disconnect();
       controls.dispose();
@@ -345,74 +448,118 @@ export default function TimelineMap3DPreview({
       renderer.domElement.removeEventListener("pointermove", handlePointerMove);
       renderer.domElement.removeEventListener("pointerup", handlePointerUp);
       renderer.domElement.removeEventListener("pointercancel", handlePointerUp);
+      disposeObject(scene);
       renderer.dispose();
       host.removeChild(renderer.domElement);
-      scene.traverse((object) => {
-        object.geometry?.dispose?.();
-        if (object.material) {
-          const materials = Array.isArray(object.material) ? object.material : [object.material];
-          materials.forEach((material) => {
-            material.map?.dispose?.();
-            material.dispose?.();
-          });
-        }
-      });
     };
-  }, [activeAction, onSelectMarker, onUpdateAction, onUpdateMarker, playTime, state]);
+  }, [activeAction, activeSegment, mapMode, onPlacePoint, onSelect, onUpdateAction, onUpdateMarker, playTime, selected, state]);
 
-  const marker = state.markers?.find((item) => item.id === activeMarkerId);
-  const actionScale = Number(activeAction?.scale || 1);
-  const rotationZ = Number(activeAction?.rotationZ ?? activeAction?.rotation ?? 0);
+  const canRotate = selected?.kind === "action" && activeAction;
+  const rotationX = Number(activeAction?.transform?.rotationX || 0);
+  const rotationY = Number(activeAction?.transform?.rotationY || 0);
+  const rotationZ = Number(activeAction?.transform?.rotationZ || 0);
+  const changeRotation = (field, delta) => {
+    const current = Number(activeAction?.transform?.[field] || 0);
+    onUpdateActionTransform?.(field, current + delta);
+  };
+  const startRotateDrag = (event) => {
+    if (!activeAction) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    rotatePadRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      rotationX,
+      rotationZ,
+    };
+  };
+  const moveRotateDrag = (event) => {
+    const drag = rotatePadRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    event.preventDefault();
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    onUpdateActionTransform?.("rotationZ", Number((drag.rotationZ + dx * 0.45).toFixed(1)));
+    onUpdateActionTransform?.("rotationX", Number((drag.rotationX - dy * 0.45).toFixed(1)));
+  };
+  const stopRotateDrag = (event) => {
+    rotatePadRef.current = null;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+  };
 
   return (
-    <div className="relative overflow-hidden rounded-[1.5rem] bg-slate-950">
-      <div ref={hostRef} className="h-[420px]" />
-      <div className="absolute left-3 top-3 grid max-w-[calc(100%-1.5rem)] gap-2 rounded-2xl border border-white/10 bg-slate-950/85 p-3 text-white shadow-xl backdrop-blur">
-        <div className="grid gap-2 sm:grid-cols-3">
-          <label className="grid gap-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-300">
-            Size animation
-            <input
-              type="range"
-              min="0.1"
-              max="8"
-              step="0.1"
-              value={actionScale}
-              onChange={(event) => onUpdateAction?.("scale", Number(event.target.value))}
-              className="w-36 accent-amber-300"
-            />
-          </label>
-          <label className="grid gap-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-300">
-            Huong Z
-            <input
-              type="range"
-              min="-180"
-              max="180"
-              step="1"
-              value={rotationZ}
-              onChange={(event) => {
-                onUpdateAction?.("rotationZ", Number(event.target.value));
-                onUpdateAction?.("rotation", Number(event.target.value));
-              }}
-              className="w-36 accent-amber-300"
-            />
-          </label>
-          <label className="grid gap-1 text-[10px] font-black uppercase tracking-[0.12em] text-slate-300">
-            Size moc
-            <input
-              type="range"
-              min="0.2"
-              max="5"
-              step="0.1"
-              value={marker?.markerScale ?? 1}
-              onChange={(event) => marker && onUpdateMarker?.(marker.id, "markerScale", Number(event.target.value))}
-              className="w-36 accent-amber-300"
-            />
-          </label>
-        </div>
-        <p className="text-xs font-semibold text-slate-300">
-          Keo coc 3D de doi vi tri moc. Keo asset dang chon de doi vi tri animation/waypoint hien tai.
+    <div className="relative overflow-hidden rounded-2xl bg-slate-950 shadow-sm ring-1 ring-slate-200">
+      <div ref={hostRef} className="h-[760px] min-h-[620px]" />
+      <div className="pointer-events-none absolute left-4 top-4 max-w-sm rounded-xl border border-white/10 bg-slate-950/85 p-3 text-white shadow-xl backdrop-blur">
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-200">Bản đồ chỉnh sửa 3D</p>
+        <p className="mt-1 text-xs leading-5 text-slate-300">
+          Mặt phẳng bản đồ giữ đúng tỉ lệ target AR. Kéo mốc hoặc asset để chỉnh X/Y; chỉnh Z, xoay và kích thước ở bảng thông số.
         </p>
       </div>
+      {canRotate ? (
+        <div className="absolute right-4 top-4 w-72 rounded-xl border border-white/10 bg-slate-950/88 p-3 text-white shadow-xl backdrop-blur">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-200">Xoay asset trên bản đồ</p>
+              <p className="mt-1 text-xs text-slate-300">Các nút này cập nhật thẳng vào thông số asset.</p>
+            </div>
+            <button
+              type="button"
+              className="rounded-lg bg-white/10 px-2 py-1 text-xs font-black text-white"
+              onClick={() => {
+                onUpdateActionTransform?.("rotationX", 0);
+                onUpdateActionTransform?.("rotationY", 0);
+                onUpdateActionTransform?.("rotationZ", 0);
+              }}
+            >
+              Reset
+            </button>
+          </div>
+          <div className="mt-3 grid gap-2">
+            {[
+              ["rotationX", "X", rotationX],
+              ["rotationY", "Y", rotationY],
+              ["rotationZ", "Z", rotationZ],
+            ].map(([field, label, value]) => (
+              <div key={field} className="grid grid-cols-[28px_1fr_1fr_52px] items-center gap-2">
+                <span className="text-xs font-black text-slate-300">{label}</span>
+                <button type="button" className="rounded-lg bg-white px-2 py-2 text-xs font-black text-slate-950" onClick={() => changeRotation(field, -5)}>
+                  -5°
+                </button>
+                <button type="button" className="rounded-lg bg-white px-2 py-2 text-xs font-black text-slate-950" onClick={() => changeRotation(field, 5)}>
+                  +5°
+                </button>
+                <span className="rounded-lg bg-white/10 px-2 py-2 text-center text-xs font-black text-white">{Number(value).toFixed(0)}°</span>
+              </div>
+            ))}
+          </div>
+          <div
+            role="slider"
+            tabIndex={0}
+            aria-label="Kéo để xoay asset"
+            onPointerDown={startRotateDrag}
+            onPointerMove={moveRotateDrag}
+            onPointerUp={stopRotateDrag}
+            onPointerCancel={stopRotateDrag}
+            className="mt-3 grid h-36 touch-none place-items-center rounded-xl border border-white/15 bg-white/8 text-center text-xs font-bold text-slate-200"
+          >
+            <div>
+              <div className="mx-auto mb-2 h-9 w-9 rounded-full border-2 border-amber-300 bg-amber-300/20 shadow-lg shadow-amber-300/20" />
+              <p>Kéo trong ô này để xoay trực tiếp model</p>
+              <p className="mt-1 text-[11px] text-slate-400">Ngang: xoay Z | Dọc: xoay X</p>
+            </div>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button type="button" className="rounded-lg bg-amber-300 px-2 py-2 text-xs font-black text-slate-950" onClick={() => onUpdateActionTransform?.("rotationX", -90)}>
+              Nằm trên bản đồ
+            </button>
+            <button type="button" className="rounded-lg bg-white/10 px-2 py-2 text-xs font-black text-white" onClick={() => onUpdateActionTransform?.("rotationX", 0)}>
+              Đứng thẳng
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

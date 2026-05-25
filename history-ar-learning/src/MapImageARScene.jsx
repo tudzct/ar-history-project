@@ -1,96 +1,15 @@
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { CONFIG_URL, MAP_IMAGE, defaultAssetByType, normalizeConfig } from "./arConfigSchema.js";
+import { getActionPoint, getActionRotation, segmentDuration } from "./arTimelineEngine.js";
+import { pointToAR } from "./arCoordinates.js";
 
-const TARGET_IMAGE = "/ar-targets/dien_bien_phu_map.jpg";
 const TARGET_MIND = "/ar-targets/dien_bien_phu_map.mind";
-const TARGET_WIDTH = 1419;
-const TARGET_HEIGHT = 1491;
-const TARGET_ASPECT = 1491 / 1419;
-const POINT_OFFSET = [0, 0];
-const CONFIG_URL = "/ar-config/ar-timeline-config.json";
+const DEFAULT_MARKER_ASSET = "/ar-assets/flag-marker.glb";
 
 const scripts = [
   "https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js",
   "https://aframe.io/releases/1.2.0/aframe.min.js",
   "https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js",
-];
-
-const defaultAssetByType = {
-  "attack-arrow": "/ar-assets/attack-arrow.glb",
-  airplane: "/ar-assets/airplane.glb",
-  "open-point": "/ar-assets/flag-marker.glb",
-  "show-label": "/ar-assets/flag-marker.glb",
-};
-const DEFAULT_MARKER_ASSET = "/ar-assets/flag-marker.glb";
-const SECURE_CAMERA_HOSTS = new Set(["localhost", "127.0.0.1", "::1"]);
-
-const pointVideos = {
-  "him-lam": {
-    title: "Tran danh Him Lam",
-    videoPath: "D:\\ghichep_monhoc\\Ky2_nam3\\CDKHMT\\HimLam\\HimLam(Moc_1).mp4",
-  },
-  "thanh-minh": {
-    title: "Doi Doc Lap va Ban Keo",
-    videoPath:
-      "D:\\ghichep_monhoc\\Ky2_nam3\\CDKHMT\\Đồi Độc Lập và Bản kéo\\Đồi Độc Lập và Bản kéo(moc_2).mp4",
-  },
-  "ta-leng": {
-    title: "San bay Muong Thanh",
-    videoPath:
-      "D:\\ghichep_monhoc\\Ky2_nam3\\CDKHMT\\Sân bay Mường Thanh\\Sân bay Mường Thanh(Moc_3)_.mp4",
-  },
-  "tan-thanh": {
-    title: "San bay Muong Thanh",
-    videoPath:
-      "D:\\ghichep_monhoc\\Ky2_nam3\\CDKHMT\\Sân bay Mường Thanh\\Sân bay Mường Thanh(Moc_3)_.mp4",
-  },
-  "muong-thanh": {
-    title: "Khu trung tam",
-    videoPath:
-      "D:\\ghichep_monhoc\\Ky2_nam3\\CDKHMT\\Khu trung tam(moc_5)\\Khu trung tam(moc_5)-1.mp4",
-  },
-};
-
-const fallbackPoints = [
-  {
-    id: "him-lam",
-    title: "Him Lam",
-    detail: "Khu vuc trung tam tren ban do, co the gan noi dung lich su va diem tham quan.",
-    pixel: [620, 865],
-    offset: [-0.045, 0.016],
-    color: "#ef4444",
-  },
-  {
-    id: "muong-thanh",
-    title: "Muong Thanh",
-    detail: "Vi tri noi bat o khu vuc phia tay nam ban do, phu hop lam point goc cho bai hoc.",
-    pixel: [392, 1125],
-    offset: [-0.035, 0.038],
-    color: "#f59e0b",
-  },
-  {
-    id: "tan-thanh",
-    title: "Tan Thanh",
-    detail: "Diem nam gan trung tam duong noi do thi, co the dung de mo thong tin dia danh.",
-    pixel: [451, 1018],
-    offset: [-0.055, 0.018],
-    color: "#8b5cf6",
-  },
-  {
-    id: "thanh-minh",
-    title: "Thanh Minh",
-    detail: "Khu vuc phia dong bac cua ban do, dung lam point mo rong cho lop thong tin dia ly.",
-    pixel: [985, 562],
-    offset: [-0.12, -0.025],
-    color: "#22c55e",
-  },
-  {
-    id: "ta-leng",
-    title: "Ta Leng",
-    detail: "Khu vuc phia dong nam, co the gan mo ta dia hinh va lien ket den bai hoc lien quan.",
-    pixel: [1175, 1042],
-    offset: [-0.16, 0.012],
-    color: "#38bdf8",
-  },
 ];
 
 let scriptPromise;
@@ -106,41 +25,9 @@ function mediaPathToUrl(filePath = "") {
   return `/@fs/${encodeURI(cleanPath.replaceAll("\\", "/"))}`;
 }
 
-function cameraSecurityIssue() {
-  if (typeof window === "undefined") return "";
-  if (window.isSecureContext || SECURE_CAMERA_HOSTS.has(window.location.hostname)) return "";
-
-  return `Camera bi chan vi trang dang chay bang ${window.location.protocol}//${window.location.host}. Hay chay npm run dev:https va mo lai bang HTTPS.`;
-}
-
-function cameraSupportIssue() {
-  if (typeof navigator === "undefined") return "";
-  if (!navigator.mediaDevices?.getUserMedia) {
-    return "Trinh duyet nay khong ho tro getUserMedia. Hay mo bang Safari hoac Chrome moi nhat.";
-  }
-  return "";
-}
-
-async function loadArConfig() {
-  const response = await fetch(`${CONFIG_URL}?t=${Date.now()}`);
-  if (!response.ok) throw new Error("Cannot load AR timeline config");
-  const config = await response.json();
-  return {
-    markers: config.markers?.length ? config.markers : fallbackPoints.map((point) => ({
-      id: point.id,
-      label: point.title,
-      x: (point.pixel[0] / TARGET_WIDTH) * 100,
-      y: (point.pixel[1] / TARGET_HEIGHT) * 100,
-      color: point.color,
-    })),
-    timeline: config.timeline || [],
-  };
-}
-
 function loadScript(src) {
   const existing = document.querySelector(`script[src="${src}"]`);
   if (existing) return Promise.resolve();
-
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = src;
@@ -158,210 +45,123 @@ function loadMindARScripts() {
   return scriptPromise;
 }
 
-function pixelToAR([x, y], offset = [0, 0], z = 0) {
-  const arX = x / TARGET_WIDTH - 0.5 + POINT_OFFSET[0] + offset[0];
-  const arY = (0.5 - y / TARGET_HEIGHT) * TARGET_ASPECT + POINT_OFFSET[1] + offset[1];
-  return `${arX.toFixed(3)} ${arY.toFixed(3)} ${z}`;
+async function loadArConfig() {
+  const response = await fetch(`${CONFIG_URL}?t=${Date.now()}`);
+  if (!response.ok) throw new Error("Không tải được cấu hình timeline AR");
+  return normalizeConfig(await response.json());
 }
 
-function percentToAR(x, y, z = 0) {
-  const arX = x / 100 - 0.5 + POINT_OFFSET[0];
-  const arY = (0.5 - y / 100) * TARGET_ASPECT + POINT_OFFSET[1];
-  return `${arX.toFixed(3)} ${arY.toFixed(3)} ${z}`;
-}
-
-function pointToAR(point, calibration = {}, z = 0) {
-  const scaleX = Number(calibration.scaleX ?? 1);
-  const scaleY = Number(calibration.scaleY ?? 1);
-  const offsetX = Number(calibration.offsetX ?? 0);
-  const offsetY = Number(calibration.offsetY ?? 0);
-  const normalizedX = (point.x - 50) * scaleX + 50 + offsetX;
-  const normalizedY = (point.y - 50) * scaleY + 50 + offsetY;
-  return percentToAR(normalizedX, normalizedY, z);
-}
-
-function parsePair(value) {
-  if (!value) return null;
-  const [x, y] = value.split(",").map((item) => Number(item.trim()));
-  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
-  return { x, y };
-}
-
-function pathPoints(action) {
-  const points = Array.isArray(action?.path) ? action.path.map(parsePair).filter(Boolean) : [];
-  const from = parsePair(action?.from);
-  const to = parsePair(action?.to);
-  return points.length >= 2 ? points : from && to ? [from, to] : points;
-}
-
-function pointOnPath(points, progress) {
-  if (!points.length) return null;
-  if (points.length === 1) return points[0];
-  const segments = points.slice(0, -1).map((point, index) => {
-    const next = points[index + 1];
-    const length = Math.hypot(next.x - point.x, next.y - point.y);
-    return { point, next, length };
-  });
-  const total = segments.reduce((sum, segment) => sum + segment.length, 0) || 1;
-  let distance = Math.max(0, Math.min(1, progress)) * total;
-  for (const segment of segments) {
-    if (distance <= segment.length) {
-      const local = segment.length ? distance / segment.length : 0;
-      return {
-        x: segment.point.x + (segment.next.x - segment.point.x) * local,
-        y: segment.point.y + (segment.next.y - segment.point.y) * local,
-      };
-    }
-    distance -= segment.length;
-  }
-  return points[points.length - 1];
-}
-
-function pathAngle(points, progress) {
-  if (points.length < 2) return 0;
-  const ahead = pointOnPath(points, Math.min(1, progress + 0.01));
-  const behind = pointOnPath(points, Math.max(0, progress - 0.01));
-  if (!ahead || !behind) return 0;
-  return Math.atan2(ahead.y - behind.y, ahead.x - behind.x) * (180 / Math.PI);
-}
-
-function hotspotMarkup(point) {
-  const position = point.pixel ? pixelToAR(point.pixel, point.offset) : pointToAR(point, point.calibration);
-  const color = point.color || "#ef4444";
-  const title = point.title || point.label || point.id;
-  const markerAsset = mediaPathToUrl(point.markerAssetPath || DEFAULT_MARKER_ASSET);
-  const markerScale = Number(point.markerScale || 1);
-  const ringInnerRadius = 0.028 * markerScale;
-  const ringOuterRadius = 0.038 * markerScale;
-  const modelScale = 0.035 * markerScale;
-  const hitRadius = 0.06 * Math.max(1, markerScale);
+function markerMarkup(marker, calibration) {
+  const position = pointToAR(marker, calibration, marker.z || 0.02);
+  const color = marker.color || "#ef4444";
+  const scale = Number(marker.scale || 0.35);
+  const modelScale = 0.035 * scale;
+  const ringInnerRadius = 0.03 * Math.max(0.4, scale);
+  const ringOuterRadius = 0.045 * Math.max(0.4, scale);
   return `
-    <a-entity class="hotspot" data-point="${point.id}" position="${position}">
+    <a-entity class="hotspot marker-root" data-point="${escapeAttr(marker.id)}" position="${position}">
       <a-sphere
         class="hotspot"
-        data-point="${point.id}"
-        radius="${hitRadius.toFixed(3)}"
+        data-point="${escapeAttr(marker.id)}"
+        radius="${(0.08 * Math.max(1, scale)).toFixed(3)}"
         position="0 0 0.06"
         material="opacity: 0; transparent: true"
       ></a-sphere>
       <a-ring
-        class="hotspot"
-        data-point="${point.id}"
+        id="marker-ring-${escapeAttr(marker.id)}"
+        class="hotspot marker-ring"
+        data-point="${escapeAttr(marker.id)}"
         radius-inner="${ringInnerRadius.toFixed(3)}"
         radius-outer="${ringOuterRadius.toFixed(3)}"
         position="0 0 0.004"
         color="${color}"
-        opacity="0.8"
+        opacity="0.85"
       ></a-ring>
       <a-entity
         class="hotspot"
-        data-point="${point.id}"
-        gltf-model="${escapeAttr(markerAsset)}"
+        data-point="${escapeAttr(marker.id)}"
+        gltf-model="${DEFAULT_MARKER_ASSET}"
         position="0 0 0.055"
         rotation="90 0 0"
         scale="${modelScale.toFixed(3)} ${modelScale.toFixed(3)} ${modelScale.toFixed(3)}"
       ></a-entity>
       <a-text
-        value="${escapeAttr(title)}"
+        value="${escapeAttr(marker.label || marker.id)}"
         align="center"
         width="0.7"
         position="0 0 0.13"
-        rotation="0 0 0"
         color="#ffffff"
       ></a-text>
     </a-entity>
   `;
 }
 
-function actionMarkup(action, markers, index, calibration = {}) {
-  const marker = markers.find((item) => item.id === action.pointId) || markers[0];
-  const actionPosition = parsePair(action.position);
-  const points = pathPoints(action);
-  const position = points[0] ? pointToAR(points[0], calibration, 0.08) : actionPosition ? pointToAR(actionPosition, calibration, 0.08) : pointToAR(marker, calibration, 0.08);
-  const color = action.color || marker?.color || "#ef4444";
+function actionBasePoint(action, marker) {
+  const point = action.path?.[0] || action.position || marker || { x: 50, y: 50, z: action.transform?.z || 0.08 };
+  return {
+    ...point,
+    x: Number(point.x || 50) + Number(action.transform?.offsetX || 0),
+    y: Number(point.y || 50) + Number(action.transform?.offsetY || 0),
+    z: Number(point.z ?? action.transform?.z ?? 0.08) + Number(action.transform?.offsetZ || 0),
+  };
+}
+
+function actionMarkup(action, marker, index, calibration) {
+  const transform = action.transform || {};
+  const position = pointToAR(actionBasePoint(action, marker), calibration, transform.z || 0.08);
   const id = `timeline-action-${index}`;
-  const label = escapeAttr(action.label || "");
-  const labelMarkup = label ? `<a-text value="${label}" align="center" width="0.7" position="0 0 0.12" color="#ffffff"></a-text>` : "";
   const assetPath = action.assetPath || defaultAssetByType[action.type] || "";
-  const rotation = Number(action.rotation || 0);
-  const rotationX = Number(action.rotationX || 0);
-  const rotationY = Number(action.rotationY || 0);
-  const rotationZ = Number(action.rotationZ ?? action.rotation ?? 0);
-  const scale = Number(action.scale || 1);
+  const scale = Number(transform.scale || 1);
+  const rotation = `${Number(transform.rotationX || 0)} ${Number(transform.rotationY || 0)} ${Number(transform.rotationZ || 0)}`;
+  const label = action.label ? `<a-text value="${escapeAttr(action.label)}" align="center" width="0.7" position="0 0 0.12" color="#ffffff"></a-text>` : "";
 
   if (assetPath) {
     return `
-      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}">
-        <a-entity gltf-model="${escapeAttr(mediaPathToUrl(assetPath))}" scale="${0.03 * scale} ${0.03 * scale} ${0.03 * scale}" rotation="${90 + rotationX} ${rotationY} ${rotationZ}"></a-entity>
-        ${labelMarkup}
+      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="${rotation}">
+        <a-entity gltf-model="${escapeAttr(mediaPathToUrl(assetPath))}" scale="0.03 0.03 0.03"></a-entity>
+        ${action.type === "bomb-drop" ? `<a-sphere class="bomb-flash" radius="0.045" color="#fb923c" opacity="0.85" position="0 0 -0.02" animation="property: scale; from: 0.5 0.5 0.5; to: 2 2 2; dur: 500; dir: alternate; loop: true"></a-sphere>` : ""}
+        ${label}
       </a-entity>
     `;
   }
 
   if (action.type === "attack-arrow") {
     return `
-      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="0 0 ${rotation}" scale="${scale} ${scale} ${scale}">
-        <a-cylinder radius="0.008" height="0.12" position="0 0 0" rotation="90 0 0" color="${color}"></a-cylinder>
-        <a-cone radius-bottom="0.025" radius-top="0" height="0.055" position="0 0.075 0" rotation="90 0 0" color="${color}"></a-cone>
-        ${labelMarkup}
+      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="${rotation}" scale="${scale} ${scale} ${scale}">
+        <a-cylinder radius="0.008" height="0.14" position="0 0 0" rotation="90 0 0" color="#22c55e"></a-cylinder>
+        <a-cone radius-bottom="0.028" radius-top="0" height="0.06" position="0 0.085 0" rotation="90 0 0" color="#22c55e"></a-cone>
+        ${label}
       </a-entity>
     `;
   }
 
-  if (action.type === "airplane") {
+  if (action.type === "bomb-drop") {
     return `
-      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="0 0 ${rotation}" scale="${scale} ${scale} ${scale}">
-        <a-cone radius-bottom="0.025" radius-top="0.006" height="0.12" rotation="0 0 -90" color="${color}"></a-cone>
-        <a-box width="0.11" height="0.012" depth="0.025" position="0 0 0" color="#e5e7eb"></a-box>
-        ${labelMarkup}
-      </a-entity>
-    `;
-  }
-
-  if (action.type === "explosion" || action.type === "bomb-drop") {
-    return `
-      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="0 0 ${rotation}" scale="${scale} ${scale} ${scale}">
-        <a-sphere radius="0.035" color="${color}" opacity="0.85"
-          animation="property: scale; from: 0.4 0.4 0.4; to: 2.4 2.4 2.4; dur: 600; dir: alternate; loop: true"></a-sphere>
-        ${labelMarkup}
-      </a-entity>
-    `;
-  }
-
-  if (action.type === "hand-guide") {
-    return `
-      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="0 0 ${rotation}" scale="${scale} ${scale} ${scale}">
-        <a-sphere radius="0.026" color="${color}" animation="property: position; dir: alternate; dur: 500; loop: true; to: 0 0 0.05"></a-sphere>
-        <a-cone radius-bottom="0.025" radius-top="0.006" height="0.08" position="0 0.04 -0.03" rotation="45 0 0" color="${color}"></a-cone>
-        ${labelMarkup}
+      <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="${rotation}" scale="${scale} ${scale} ${scale}">
+        <a-sphere radius="0.035" color="#f97316" opacity="0.9" animation="property: scale; from: 0.4 0.4 0.4; to: 2.2 2.2 2.2; dur: 520; dir: alternate; loop: true"></a-sphere>
+        ${label}
       </a-entity>
     `;
   }
 
   return `
-    <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="0 0 ${rotation}" scale="${scale} ${scale} ${scale}">
-      <a-ring radius-inner="0.045" radius-outer="0.055" position="0 0 0" color="${color}" opacity="0.85"
-        animation="property: scale; from: 0.8 0.8 0.8; to: 1.8 1.8 1.8; dur: 700; dir: alternate; loop: true"></a-ring>
-      <a-sphere radius="0.014" position="0 0 0.04" color="${color}"></a-sphere>
-      ${labelMarkup}
+    <a-entity id="${id}" class="timeline-action" data-action-index="${index}" visible="false" position="${position}" rotation="${rotation}" scale="${scale} ${scale} ${scale}">
+      <a-ring radius-inner="0.045" radius-outer="0.06" color="#facc15" opacity="0.9"
+        animation="property: scale; from: 0.8 0.8 0.8; to: 1.7 1.7 1.7; dur: 700; dir: alternate; loop: true"></a-ring>
+      <a-sphere radius="0.014" position="0 0 0.04" color="#facc15"></a-sphere>
+      ${label}
     </a-entity>
   `;
 }
 
-function flattenActions(timeline) {
-  return timeline.flatMap((segment) =>
-    (segment.actions || []).map((action) => ({
-      ...action,
-      segmentTitle: segment.title,
-      audioPath: segment.audioPath,
-      autoPlayAfterStart: segment.autoPlayAfterStart,
-      waitForPointClose: segment.waitForPointClose,
-    }))
+function flattenActions(config) {
+  return config.segments.flatMap((segment, segmentIndex) =>
+    (segment.actions || []).map((action, actionIndex) => ({ ...action, segmentIndex, actionIndex }))
   );
 }
 
 function buildScene(targetUrl, config) {
-  const actions = flattenActions(config.timeline);
+  const actions = flattenActions(config);
   return `
     <a-scene
       mindar-image="imageTargetSrc: ${targetUrl}; autoStart: true; uiScanning: yes; uiLoading: yes; filterMinCF: 0.0001; filterBeta: 1; warmupTolerance: 8; missTolerance: 20"
@@ -372,19 +172,17 @@ function buildScene(targetUrl, config) {
       embedded
     >
       <a-assets timeout="30000">
-        <img id="mapTargetImage" src="${TARGET_IMAGE}" />
+        <img id="mapTargetImage" src="${MAP_IMAGE}" />
       </a-assets>
-
       <a-camera
         position="0 0 0"
         look-controls="enabled: false"
         cursor="rayOrigin: mouse; fuse: false"
         raycaster="objects: .hotspot; far: 100"
       ></a-camera>
-
       <a-entity id="timelineTarget" mindar-image-target="targetIndex: 0">
-        ${config.markers.map((marker) => hotspotMarkup({ ...marker, calibration: config.calibration })).join("")}
-        ${actions.map((action, index) => actionMarkup(action, config.markers, index, config.calibration)).join("")}
+        ${config.markers.map((marker) => markerMarkup(marker, config.calibration)).join("")}
+        ${actions.map((action, index) => actionMarkup(action, config.markers.find((marker) => marker.id === action.pointId), index, config.calibration)).join("")}
       </a-entity>
     </a-scene>
   `;
@@ -394,182 +192,125 @@ export default function MapImageARScene() {
   const sceneHostRef = useRef(null);
   const sceneRef = useRef(null);
   const screenPickHandlerRef = useRef(null);
-  const timelineTimerRef = useRef(null);
-  const timelineStartedRef = useRef(false);
-  const playedVoiceIdsRef = useRef(new Set());
-  const arConfigRef = useRef(null);
-  const actionListRef = useRef([]);
+  const timerRef = useRef(null);
   const audioRef = useRef(null);
-  const resizeHandlerRef = useRef(null);
-  const [loading, setLoading] = useState({
-    active: false,
-    title: "",
-    note: "",
-    progress: 0,
-    error: "",
-  });
-  const [activeVideo, setActiveVideo] = useState(null);
+  const configRef = useRef(null);
+  const actionListRef = useRef([]);
+  const segmentIndexRef = useRef(0);
   const [running, setRunning] = useState(false);
+  const [selected, setSelected] = useState({ title: "Bản đồ AR", detail: "Bấm Start AR rồi quét bản đồ in." });
+  const [activeVideo, setActiveVideo] = useState(null);
+  const [highlightMarkerId, setHighlightMarkerId] = useState("");
+  const [loading, setLoading] = useState({ active: false, title: "", note: "", progress: 0, error: "" });
+
+  const clearTimer = () => {
+    if (timerRef.current) window.clearInterval(timerRef.current);
+    timerRef.current = null;
+    audioRef.current?.pause();
+  };
+
+  const setMarkerHighlight = (markerId) => {
+    setHighlightMarkerId(markerId || "");
+    const scene = sceneRef.current;
+    scene?.querySelectorAll(".marker-ring").forEach((ring) => {
+      ring.removeAttribute("animation");
+      ring.setAttribute("opacity", "0.85");
+      ring.setAttribute("color", ring.getAttribute("color") || "#facc15");
+    });
+    if (!markerId) return;
+    const ring = Array.from(scene?.querySelectorAll(".marker-ring") || []).find((item) => item.id === `marker-ring-${markerId}`);
+    if (ring) {
+      ring.setAttribute("color", "#facc15");
+      ring.setAttribute("opacity", "1");
+      ring.setAttribute("animation", "property: scale; from: 1 1 1; to: 1.8 1.8 1.8; dur: 700; dir: alternate; loop: true");
+    }
+  };
+
+  const updateActions = (segment, elapsed) => {
+    const scene = sceneRef.current;
+    const config = configRef.current;
+    if (!scene || !config || !segment) return;
+    const actions = actionListRef.current;
+    actions.forEach((action, globalIndex) => {
+      const entity = scene.querySelector(`#timeline-action-${globalIndex}`);
+      if (!entity) return;
+      const isCurrentSegment = action.segmentIndex === segmentIndexRef.current;
+      const start = Number(action.startAt || 0);
+      const duration = Math.max(0.1, Number(action.duration || 1));
+      const visible = isCurrentSegment && elapsed >= start && elapsed <= start + duration;
+      entity.setAttribute("visible", visible);
+      if (!visible) return;
+      const marker = config.markers.find((item) => item.id === action.pointId);
+      const localElapsed = elapsed - start;
+      const point = getActionPoint(action, marker, localElapsed);
+      const transform = action.transform || {};
+      const position = {
+        ...point,
+        x: Number(point.x || 50) + Number(transform.offsetX || 0),
+        y: Number(point.y || 50) + Number(transform.offsetY || 0),
+        z: Number(point.z || transform.z || 0.08) + Number(transform.offsetZ || 0),
+      };
+      const rotation = getActionRotation(action, localElapsed);
+      const scale = Number(transform.scale || 1);
+      entity.setAttribute("position", pointToAR(position, config.calibration, transform.z || 0.08));
+      entity.setAttribute("rotation", `${rotation.x} ${rotation.y} ${rotation.z}`);
+      entity.setAttribute("scale", `${scale} ${scale} ${scale}`);
+    });
+  };
+
+  const playSegment = async (index = 0) => {
+    const config = configRef.current;
+    const segment = config?.segments?.[index];
+    if (!segment) return;
+    clearTimer();
+    segmentIndexRef.current = index;
+    setMarkerHighlight("");
+    if (!audioRef.current) audioRef.current = new Audio();
+    if (segment.audioPath) {
+      audioRef.current.src = mediaPathToUrl(segment.audioPath);
+      audioRef.current.currentTime = 0;
+      try {
+        await audioRef.current.play();
+      } catch {
+        // Mobile browsers may still require a fresh user gesture; actions continue as visual guidance.
+      }
+    }
+    const startedAt = performance.now();
+    updateActions(segment, 0);
+    timerRef.current = window.setInterval(() => {
+      const elapsed = (performance.now() - startedAt) / 1000;
+      updateActions(segment, elapsed);
+      if (elapsed >= segmentDuration(segment)) {
+        clearTimer();
+        updateActions(segment, segmentDuration(segment) + 1);
+        setMarkerHighlight(segment.nextMarkerId);
+      }
+    }, 80);
+  };
 
   const selectPoint = (pointId) => {
-    const marker = arConfigRef.current?.markers?.find((item) => item.id === pointId);
-    const point = marker
-      ? { id: marker.id, title: marker.label, detail: `Dang chon moc ${marker.label}.`, color: marker.color }
-      : fallbackPoints.find((item) => item.id === pointId);
-    if (!point) return;
-
-    const fallbackVideo = pointVideos[pointId];
-    const videoPath = marker?.videoPath || fallbackVideo?.videoPath || "";
-    if (videoPath) {
+    const config = configRef.current;
+    const marker = config?.markers?.find((item) => item.id === pointId);
+    if (!marker) return;
+    setSelected({
+      title: marker.label || marker.id,
+      detail: marker.videoPath ? "Mốc này có video. Đóng video để tiếp tục mạch thuyết minh." : "Đang chọn mốc trên bản đồ.",
+    });
+    if (marker.videoPath) {
       setActiveVideo({
-        title: marker?.videoTitle || fallbackVideo?.title || point.title,
-        videoPath,
-        pointTitle: point.title,
-        pointId: point.id,
-        src: mediaPathToUrl(videoPath),
+        title: marker.label || marker.id,
+        src: mediaPathToUrl(marker.videoPath),
+        pointId: marker.id,
       });
     }
   };
 
-  const stopTimeline = () => {
-    if (timelineTimerRef.current) {
-      window.clearInterval(timelineTimerRef.current);
-      timelineTimerRef.current = null;
-    }
-    timelineStartedRef.current = false;
-    playedVoiceIdsRef.current.clear();
-    audioRef.current?.pause();
-  };
-
-  const resizeArScene = useCallback(() => {
-    const host = sceneHostRef.current;
-    const scene = sceneRef.current;
-    if (!host || !scene) return;
-
-    const viewport = window.visualViewport;
-    const width = Math.round(viewport?.width || window.innerWidth || host.clientWidth);
-    const height = Math.round(viewport?.height || window.innerHeight || host.clientHeight);
-
-    host.style.width = `${width}px`;
-    host.style.height = `${height}px`;
-    scene.style.width = `${width}px`;
-    scene.style.height = `${height}px`;
-
-    if (scene.renderer) {
-      scene.renderer.setSize(width, height, false);
-    }
-    if (scene.camera) {
-      scene.camera.aspect = width / height;
-      scene.camera.updateProjectionMatrix();
-    }
-    scene.resize?.();
-  }, []);
-
-  const attachArResize = useCallback(() => {
-    if (resizeHandlerRef.current) return;
-
-    const handler = () => {
-      window.requestAnimationFrame(resizeArScene);
-    };
-    resizeHandlerRef.current = handler;
-    window.addEventListener("resize", handler);
-    window.visualViewport?.addEventListener("resize", handler);
-    window.visualViewport?.addEventListener("scroll", handler);
-    handler();
-  }, [resizeArScene]);
-
-  const removeArResize = () => {
-    const handler = resizeHandlerRef.current;
-    if (!handler) return;
-
-    window.removeEventListener("resize", handler);
-    window.visualViewport?.removeEventListener("resize", handler);
-    window.visualViewport?.removeEventListener("scroll", handler);
-    resizeHandlerRef.current = null;
-  };
-
-  const playSegmentAudio = async (segment) => {
-    if (!segment?.audioPath) return;
-    if (!audioRef.current) audioRef.current = new Audio();
-    audioRef.current.src = mediaPathToUrl(segment.audioPath);
-    audioRef.current.currentTime = 0;
-    try {
-      await audioRef.current.play();
-    } catch {
-      // Mobile browsers may require a prior user gesture. Start AR is the gesture, so this is best-effort.
-    }
-  };
-
-  const updateTimelineActions = (elapsedSeconds) => {
-    const scene = sceneRef.current;
-    const config = arConfigRef.current;
-    const actions = actionListRef.current;
-    if (!scene || !config) return;
-
-    config.timeline.forEach((segment) => {
-      const id = segment.id || segment.title;
-      const start = Number(segment.at || 0);
-      const duration = Math.max(0.1, Number(segment.duration || 0));
-      const inRange = elapsedSeconds >= start && elapsedSeconds <= start + duration;
-      if (inRange && segment.audioPath && !playedVoiceIdsRef.current.has(id)) {
-        playedVoiceIdsRef.current.add(id);
-        playSegmentAudio(segment);
-      }
-    });
-
-    actions.forEach((action, index) => {
-      const entity = scene.querySelector(`#timeline-action-${index}`);
-      if (!entity) return;
-
-      const start = Number(action.at || 0);
-      const duration = Math.max(0.1, Number(action.duration || 1));
-      const visible = elapsedSeconds >= start && elapsedSeconds <= start + duration;
-      entity.setAttribute("visible", visible);
-      if (!visible) return;
-
-      const marker = config.markers.find((item) => item.id === action.pointId) || config.markers[0];
-      const actionPosition = parsePair(action.position);
-      const points = pathPoints(action);
-      const progress = Math.max(0, Math.min(1, (elapsedSeconds - start) / duration));
-      const rotationX = Number(action.rotationX || 0);
-      const rotationY = Number(action.rotationY || 0);
-      const rotationZ = Number(action.rotationZ ?? action.rotation ?? 0);
-      const scale = Number(action.scale || 1);
-      entity.setAttribute("scale", `${scale} ${scale} ${scale}`);
-
-      if (points.length >= 2 && ["attack-arrow", "airplane", "hand-guide"].includes(action.type)) {
-        const point = pointOnPath(points, progress);
-        entity.setAttribute("position", pointToAR(point, config.calibration, 0.1));
-        entity.setAttribute("rotation", `${rotationX} ${rotationY} ${pathAngle(points, progress) + rotationZ}`);
-      } else if (marker) {
-        const point = actionPosition || marker;
-        entity.setAttribute("position", pointToAR(point, config.calibration, 0.1));
-        entity.setAttribute("rotation", `${rotationX} ${rotationY} ${rotationZ}`);
-      }
-    });
-  };
-
-  const startTimelineOnce = () => {
-    if (timelineStartedRef.current) return;
-    const config = arConfigRef.current;
-    if (!config) return;
-
-    timelineStartedRef.current = true;
-
-    const startTime = performance.now();
-    updateTimelineActions(0);
-    timelineTimerRef.current = window.setInterval(() => {
-      updateTimelineActions((performance.now() - startTime) / 1000);
-    }, 80);
-  };
-
   const removeScreenPicker = () => {
     const host = sceneHostRef.current;
-    const handlers = screenPickHandlerRef.current;
-    if (!host || !handlers) return;
-
-    host.removeEventListener("pointerup", handlers.pickHandler);
-    host.removeEventListener("touchend", handlers.pickHandler);
+    const handler = screenPickHandlerRef.current;
+    if (!host || !handler) return;
+    host.removeEventListener("pointerup", handler);
+    host.removeEventListener("touchend", handler);
     screenPickHandlerRef.current = null;
   };
 
@@ -578,118 +319,67 @@ export default function MapImageARScene() {
     const scene = sceneRef.current;
     const AFRAME = window.AFRAME;
     if (!host || !scene || !AFRAME?.THREE) return;
-
     removeScreenPicker();
-
     const raycaster = new AFRAME.THREE.Raycaster();
     const pointer = new AFRAME.THREE.Vector2();
-
-    const pickHandler = (event) => {
+    const handler = (event) => {
       if (event.target.closest?.("button,a,video")) return;
-
       const touch = event.changedTouches?.[0];
       const clientX = touch?.clientX ?? event.clientX;
       const clientY = touch?.clientY ?? event.clientY;
       if (clientX == null || clientY == null || !scene.camera) return;
-
       const rect = host.getBoundingClientRect();
       pointer.x = ((clientX - rect.left) / rect.width) * 2 - 1;
       pointer.y = -((clientY - rect.top) / rect.height) * 2 + 1;
-
       const targets = [];
       scene.object3D.traverse((object) => {
         if (object.el?.classList?.contains("hotspot")) targets.push(object);
       });
-
       raycaster.setFromCamera(pointer, scene.camera);
-      const intersections = raycaster.intersectObjects(targets, true);
-      const hit = intersections.find((item) => item.object.el?.dataset?.point);
+      const hit = raycaster.intersectObjects(targets, true).find((item) => item.object.el?.dataset?.point);
       const pointId = hit?.object.el?.dataset?.point;
       if (!pointId) return;
-
       event.preventDefault();
       event.stopPropagation();
       selectPoint(pointId);
     };
-
-    host.addEventListener("pointerup", pickHandler);
-    host.addEventListener("touchend", pickHandler, { passive: false });
-    screenPickHandlerRef.current = {
-      pickHandler,
-    };
+    host.addEventListener("pointerup", handler);
+    host.addEventListener("touchend", handler, { passive: false });
+    screenPickHandlerRef.current = handler;
   };
 
   const startMindAR = async () => {
     if (running) return;
-
-    const startupIssue = cameraSecurityIssue() || cameraSupportIssue();
-    if (startupIssue) {
-      setLoading({
-        active: true,
-        title: "Khong mo duoc camera",
-        note: startupIssue,
-        progress: 100,
-        error: "camera",
-      });
-      return;
-    }
-
     setRunning(true);
-    setLoading({ active: true, title: "Dang tai AR", note: "Nap thu vien camera", progress: 8, error: "" });
-
+    setLoading({ active: true, title: "Đang tải AR", note: "Đang nạp MindAR và cấu hình", progress: 10, error: "" });
     try {
       await loadMindARScripts();
-      setLoading({ active: true, title: "Dang tai AR", note: "Nap MindAR thanh cong", progress: 18, error: "" });
-      const arConfig = await loadArConfig();
-      arConfigRef.current = arConfig;
-      actionListRef.current = flattenActions(arConfig.timeline);
-      const targetUrl = TARGET_MIND;
-
-      if (!sceneHostRef.current) return;
-      setLoading({ active: true, title: "Dang mo camera", note: "Hay chap nhan quyen camera neu duoc hoi", progress: 98, error: "" });
-      sceneHostRef.current.innerHTML = buildScene(targetUrl, arConfig);
+      const config = await loadArConfig();
+      configRef.current = config;
+      actionListRef.current = flattenActions(config);
+      setLoading({ active: true, title: "Đang mở camera", note: "Hãy cho phép quyền camera khi trình duyệt hỏi", progress: 90, error: "" });
+      sceneHostRef.current.innerHTML = buildScene(TARGET_MIND, config);
       sceneRef.current = sceneHostRef.current.querySelector("a-scene");
-
       sceneRef.current.addEventListener("arReady", () => setLoading((prev) => ({ ...prev, active: false, progress: 100 })));
-      sceneRef.current.addEventListener("loaded", () => {
-        attachScreenPicker();
-        attachArResize();
-        window.setTimeout(resizeArScene, 150);
-        window.setTimeout(resizeArScene, 500);
+      sceneRef.current.addEventListener("loaded", attachScreenPicker);
+      sceneRef.current.addEventListener("targetFound", () => playSegment(0));
+      sceneRef.current.querySelector("#timelineTarget")?.addEventListener("targetFound", () => playSegment(0));
+      sceneRef.current.addEventListener("arError", () => {
+        setLoading({ active: true, title: "Không mở được camera", note: "Hãy dùng HTTPS và kiểm tra quyền camera", progress: 100, error: "camera" });
       });
-      sceneRef.current.addEventListener("targetFound", startTimelineOnce);
-      sceneRef.current.querySelector("#timelineTarget")?.addEventListener("targetFound", startTimelineOnce);
-      sceneRef.current.addEventListener("arError", () =>
-        setLoading({
-          active: true,
-          title: "Khong mo duoc camera",
-          note: cameraSecurityIssue() || "Hay kiem tra quyen camera trong trinh duyet roi thu lai.",
-          progress: 100,
-          error: "camera",
-        })
-      );
-
       sceneHostRef.current.querySelectorAll(".hotspot").forEach((hotspot) => {
         const pointId = hotspot.dataset.point;
-        const handleSelect = (event) => {
+        const handler = (event) => {
           event.preventDefault();
           event.stopPropagation();
           selectPoint(pointId);
         };
-
-        hotspot.addEventListener("click", handleSelect);
-        hotspot.addEventListener("pointerup", handleSelect);
-        hotspot.addEventListener("touchstart", handleSelect, { passive: false });
-        hotspot.addEventListener("touchend", handleSelect, { passive: false });
+        hotspot.addEventListener("click", handler);
+        hotspot.addEventListener("pointerup", handler);
+        hotspot.addEventListener("touchend", handler, { passive: false });
       });
     } catch (error) {
-      setLoading({
-        active: true,
-        title: "Khong khoi dong duoc AR",
-        note: error?.message || "Hay thu tai lai trang",
-        progress: 100,
-        error: "start",
-      });
+      setLoading({ active: true, title: "Không khởi động được AR", note: error?.message || "Hãy tải lại trang và thử lại", progress: 100, error: "start" });
       setRunning(false);
     }
   };
@@ -697,16 +387,27 @@ export default function MapImageARScene() {
   const stopMindAR = async () => {
     removeArResize();
     removeScreenPicker();
-    stopTimeline();
+    clearTimer();
     const scene = sceneRef.current;
-    const systems = scene?.systems;
-    if (systems?.["mindar-image-system"]) {
-      await systems["mindar-image-system"].stop();
+    if (scene?.systems?.["mindar-image-system"]) {
+      await scene.systems["mindar-image-system"].stop();
     }
     if (sceneHostRef.current) sceneHostRef.current.innerHTML = "";
     sceneRef.current = null;
     setRunning(false);
+    setMarkerHighlight("");
     setLoading({ active: false, title: "", note: "", progress: 0, error: "" });
+  };
+
+  const closeVideo = () => {
+    const pointId = activeVideo?.pointId;
+    setActiveVideo(null);
+    const config = configRef.current;
+    const currentIndex = segmentIndexRef.current;
+    const nextIndex = Math.min(currentIndex + 1, (config?.segments?.length || 1) - 1);
+    if (pointId && config?.segments?.[currentIndex]?.nextMarkerId === pointId && nextIndex !== currentIndex) {
+      playSegment(nextIndex);
+    }
   };
 
   return (
@@ -720,12 +421,10 @@ export default function MapImageARScene() {
       {!running ? (
         <div className="absolute inset-0 grid place-items-center p-6 text-center text-white">
           <div className="max-w-md">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">
-              MindAR image tracking
-            </p>
-            <h4 className="mt-3 text-3xl font-black">Quet ban do 2D tren iPhone</h4>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">MindAR image tracking</p>
+            <h4 className="mt-3 text-3xl font-black">Quét bản đồ lịch sử 2D</h4>
             <p className="mt-3 text-sm leading-6 text-slate-300">
-              Bam Start AR, cho phep camera, roi dua camera vao ban do mau. App se compile target lan dau nen co the mat vai giay.
+              Bấm Start AR, cho phép camera, rồi hướng điện thoại vào bản đồ in. Điện thoại sẽ đọc cấu hình mới nhất đã lưu từ editor.
             </p>
           </div>
         </div>
@@ -738,9 +437,7 @@ export default function MapImageARScene() {
           <div className="w-full max-w-sm rounded-[1.5rem] border border-white/10 bg-slate-950/85 p-5 shadow-2xl">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">
-                  MindAR
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">MindAR</p>
                 <h4 className="mt-2 text-xl font-black">{loading.title}</h4>
               </div>
               <div className="grid h-12 w-12 place-items-center rounded-full border border-amber-200/30 bg-amber-300/15 text-sm font-black text-amber-200">
@@ -748,46 +445,31 @@ export default function MapImageARScene() {
               </div>
             </div>
             <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/10">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  loading.error ? "bg-red-400" : "bg-amber-300"
-                }`}
-                style={{ width: `${loading.progress}%` }}
-              />
+              <div className={`h-full rounded-full transition-all duration-300 ${loading.error ? "bg-red-400" : "bg-amber-300"}`} style={{ width: `${loading.progress}%` }} />
             </div>
             <p className="mt-4 text-sm leading-6 text-slate-300">{loading.note}</p>
           </div>
         </div>
       ) : null}
 
-      <div
-        className={`absolute left-3 right-3 z-30 space-y-2 ${
-          running ? "top-[calc(env(safe-area-inset-top)+0.75rem)]" : "bottom-3"
-        }`}
-      >
+      <div className="absolute bottom-4 left-4 right-4 z-30 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+        <div className="rounded-2xl border border-white/10 bg-white/90 p-4 text-slate-950 shadow-lg backdrop-blur">
+          <p className="text-sm font-black">{selected.title}</p>
+          <p className="mt-1 text-xs leading-5 text-slate-600">
+            {highlightMarkerId ? `Mốc tiếp theo đang sáng: ${highlightMarkerId}. ` : ""}
+            {selected.detail}
+          </p>
+        </div>
         <div className="flex flex-wrap gap-2">
-          <a
-            href={TARGET_IMAGE}
-            target="_blank"
-            rel="noreferrer"
-            className="rounded-full bg-white px-3.5 py-2.5 text-xs font-black text-slate-950 shadow-lg transition hover:bg-slate-100"
-          >
-            Map target
+          <a href={MAP_IMAGE} target="_blank" rel="noreferrer" className="rounded-full bg-white px-4 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:bg-slate-100">
+            Bản đồ target
           </a>
-          <button
-            type="button"
-            onClick={running ? stopMindAR : startMindAR}
-            className="rounded-full bg-amber-300 px-4 py-2.5 text-xs font-black text-slate-950 shadow-lg transition hover:bg-amber-200"
-          >
-            {running ? "Stop AR" : "Start AR + Voice"}
+          <button type="button" onClick={running ? stopMindAR : startMindAR} className="rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:bg-amber-200">
+            {running ? "Dừng AR" : "Bắt đầu AR + voice"}
           </button>
           {running ? (
-            <button
-              type="button"
-              onClick={startTimelineOnce}
-              className="rounded-full bg-emerald-400 px-4 py-2.5 text-xs font-black text-slate-950 shadow-lg transition hover:bg-emerald-300"
-            >
-              Start Voice
+            <button type="button" onClick={() => playSegment(segmentIndexRef.current)} className="rounded-full bg-emerald-400 px-5 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:bg-emerald-300">
+              Phát lại voice
             </button>
           ) : null}
         </div>
@@ -798,32 +480,14 @@ export default function MapImageARScene() {
           <div className="w-full max-w-3xl overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950 text-white shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-white/10 p-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">
-                  {activeVideo.pointTitle}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-200">Video diễn biến</p>
                 <h4 className="mt-1 text-xl font-black">{activeVideo.title}</h4>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const pointId = activeVideo.pointId;
-                  setActiveVideo(null);
-                  const followUp = arConfigRef.current?.timeline?.find((segment) => segment.waitForPointClose === pointId);
-                  playSegmentAudio(followUp);
-                }}
-                className="rounded-full bg-white/10 px-4 py-2 text-sm font-black text-white transition hover:bg-white/20"
-              >
-                Dong
+              <button type="button" onClick={closeVideo} className="rounded-full bg-white/10 px-4 py-2 text-sm font-black text-white transition hover:bg-white/20">
+                Đóng
               </button>
             </div>
-            <video
-              key={activeVideo.src}
-              src={activeVideo.src}
-              className="aspect-video w-full bg-black"
-              controls
-              autoPlay
-              playsInline
-            />
+            <video key={activeVideo.src} src={activeVideo.src} className="aspect-video w-full bg-black" controls autoPlay playsInline />
           </div>
         </div>
       ) : null}
