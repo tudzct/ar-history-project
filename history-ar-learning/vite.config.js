@@ -1,5 +1,6 @@
 import process from "node:process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
@@ -12,6 +13,23 @@ function arConfigWriterPlugin() {
   return {
     name: "ar-config-writer",
     configureServer(server) {
+      server.middlewares.use("/ar-config/host-info", (req, res) => {
+        const protocol = server.config.server.https ? "https" : "http";
+        const port = server.config.server.port || server.httpServer?.address()?.port || 5173;
+        const interfaces = os.networkInterfaces();
+        const lanAddress = Object.values(interfaces)
+          .flat()
+          .find((item) => item && item.family === "IPv4" && !item.internal)?.address;
+        const host = lanAddress || "localhost";
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify({
+          host,
+          port,
+          url: `${protocol}://${host}:${port}`,
+          httpsUrl: `https://${host}:${port}`,
+        }));
+      });
+
       server.middlewares.use("/ar-config/save", (req, res) => {
         if (req.method !== "POST") {
           res.statusCode = 405;
