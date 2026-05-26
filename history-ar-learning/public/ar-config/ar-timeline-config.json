@@ -71,11 +71,11 @@
   ],
   "segments": [
     {
-      "id": "after-him-lam",
-      "title": "Dan tiep sau khi tat tran Him Lam",
-      "audioPath": "\"D:\\ghichep_monhoc\\Ky2_nam3\\CDKHMT\\0523.MP3\"",
+      "id": "intro",
+      "title": "Intro khi nhan target",
+      "audioPath": "/ar-assets/audios/01_intro.MP3",
       "startAt": 0,
-      "duration": 0.5,
+      "duration": 18,
       "nextMarkerId": "him-lam",
       "actions": [
         {
