@@ -16,7 +16,6 @@ dist/
 [Ll]ogs/
 [Uu]ser[Ss]ettings/
 .package-log
-.package
 
 # macOS
 .DS_Store
