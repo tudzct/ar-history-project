@@ -51,7 +51,7 @@ Sau khi tải về, đưa file cần dùng vào thư mục public của web app,
 
 ```text
 public/ar-assets/videos/him-lam.mp4
-public/ar-assets/audio/ten-loi-thoai.mp3
+public/ar-assets/audios/ten-loi-thoai.mp3
 ```
 
 Trong `public/ar-config/ar-timeline-config.json`, luôn dùng đường dẫn public bắt đầu bằng `/ar-assets/`, không dùng đường dẫn tuyệt đối trên máy cá nhân:
@@ -59,7 +59,7 @@ Trong `public/ar-config/ar-timeline-config.json`, luôn dùng đường dẫn pu
 ```json
 {
   "videoPath": "/ar-assets/videos/him-lam.mp4",
-  "audioPath": "/ar-assets/audio/ten-loi-thoai.mp3"
+  "audioPath": "/ar-assets/audios/ten-loi-thoai.mp3"
 }
 ```
 
@@ -74,7 +74,7 @@ public/ar-assets/
   marker.glb                  Model marker
   airplane.glb                Model máy bay
   videos/                     Video tại các mốc lịch sử
-  audio/                      Voice/thuyết minh timeline
+  audios/                     Voice/thuyết minh timeline
 
 public/ar-config/
   ar-timeline-config.json     Tọa độ marker và kịch bản AR
@@ -95,7 +95,7 @@ File `public/ar-config/ar-timeline-config.json` chứa:
 
 Khi thêm media mới:
 
-1. Tải file từ Drive và đặt vào `public/ar-assets/videos/` hoặc `public/ar-assets/audio/`.
+1. Tải file từ Drive và đặt vào `public/ar-assets/videos/` hoặc `public/ar-assets/audios/`.
 2. Cập nhật `videoPath` hoặc `audioPath` trong config bằng đường dẫn `/ar-assets/...`.
 3. Kiểm tra trên điện thoại bằng `npm run dev:https`.
 4. Với media được chia sẻ qua Drive, không commit file video/audio vào repo; mỗi thành viên tải file về đúng đường dẫn đã cấu hình.
