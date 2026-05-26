@@ -8,7 +8,6 @@ import {
   Boxes,
   BookOpen,
   CheckCircle2,
-  XCircle,
   ChevronRight,
   Sparkles,
   Target,
