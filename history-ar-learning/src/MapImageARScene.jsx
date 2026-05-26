@@ -9,6 +9,7 @@ import {
 
 const TARGET_MIND = "/ar-targets/dien_bien_phu_map.mind";
 const DEFAULT_MARKER_ASSET = "/ar-assets/marker.glb";
+const INTRO_AUDIO_PATH = "/ar-assets/audios/01_intro.MP3";
 const TABLETOP_TRACKING_OPTIONS = [
   "filterMinCF: 0.0001",
   "filterBeta: 0.001",
@@ -253,6 +254,7 @@ export default function MapImageARScene() {
   const configRef = useRef(null);
   const actionListRef = useRef([]);
   const segmentIndexRef = useRef(0);
+  const targetIntroPlayedRef = useRef(false);
   const [running, setRunning] = useState(false);
   const [selected, setSelected] = useState({ title: "Bản đồ AR", detail: "Bấm Start AR rồi quét bản đồ in." });
   const [activeVideo, setActiveVideo] = useState(null);
@@ -294,12 +296,13 @@ export default function MapImageARScene() {
       const isCurrentSegment = action.segmentIndex === segmentIndexRef.current;
       const start = Number(action.startAt || 0);
       const duration = Math.max(0.1, Number(action.duration || 1));
-      const visible = isCurrentSegment && elapsed >= start && elapsed <= start + duration;
+      const transform = action.transform || {};
+      const holdAfterEnd = Boolean(transform.holdAfterEnd);
+      const visible = isCurrentSegment && elapsed >= start && (elapsed <= start + duration || holdAfterEnd);
       entity.setAttribute("visible", visible);
       if (!visible) return;
       const marker = config.markers.find((item) => item.id === action.pointId);
-      const localElapsed = elapsed - start;
-      const transform = action.transform || {};
+      const localElapsed = Math.min(duration, Math.max(0, elapsed - start));
       const pose = resolveActionMapPose(action, marker, localElapsed, config.calibration);
           if (action.type === "airplane") {
       console.log("AIRPLANE POSE", {
@@ -326,12 +329,20 @@ export default function MapImageARScene() {
     setMarkerHighlight("");
     if (!audioRef.current) audioRef.current = new Audio();
     if (segment.audioPath) {
-      audioRef.current.src = mediaPathToUrl(segment.audioPath);
+      const audioSrc = mediaPathToUrl(segment.audioPath);
+      if (audioRef.current.getAttribute("src") !== audioSrc) {
+        audioRef.current.src = audioSrc;
+      }
+      audioRef.current.muted = false;
+      audioRef.current.volume = 1;
       audioRef.current.currentTime = 0;
       try {
         await audioRef.current.play();
-      } catch {
-        // Mobile browsers may still require a fresh user gesture; actions continue as visual guidance.
+      } catch (error) {
+        setSelected((current) => ({
+          ...current,
+          detail: `Trinh duyet dang chan audio: ${error?.message || "hay bam Phat lai voice"}.`,
+        }));
       }
     }
     const startedAt = performance.now();
@@ -345,6 +356,17 @@ export default function MapImageARScene() {
         setMarkerHighlight(segment.nextMarkerId);
       }
     }, 80);
+  };
+
+  const preloadAudio = (audioPath = INTRO_AUDIO_PATH) => {
+    if (!audioRef.current) audioRef.current = new Audio();
+    const audio = audioRef.current;
+    audio.preload = "auto";
+    audio.setAttribute("playsinline", "true");
+    audio.src = mediaPathToUrl(audioPath);
+    audio.muted = false;
+    audio.volume = 1;
+    audio.load();
   };
 
   const selectPoint = (pointId) => {
@@ -409,6 +431,8 @@ export default function MapImageARScene() {
 
   const startMindAR = async () => {
     if (running) return;
+    targetIntroPlayedRef.current = false;
+    preloadAudio();
     setRunning(true);
     setLoading({ active: true, title: "Đang tải AR", note: "Đang nạp MindAR và cấu hình", progress: 10, error: "" });
     try {
@@ -433,10 +457,15 @@ export default function MapImageARScene() {
       setLoading({ active: true, title: "Đang mở camera", note: "Hãy cho phép quyền camera khi trình duyệt hỏi", progress: 90, error: "" });
       sceneHostRef.current.innerHTML = buildScene(TARGET_MIND, config);
       sceneRef.current = sceneHostRef.current.querySelector("a-scene");
+      const playIntroOnTarget = () => {
+        if (targetIntroPlayedRef.current) return;
+        targetIntroPlayedRef.current = true;
+        playSegment(0);
+      };
       sceneRef.current.addEventListener("arReady", () => setLoading((prev) => ({ ...prev, active: false, progress: 100 })));
       sceneRef.current.addEventListener("loaded", attachScreenPicker);
-      sceneRef.current.addEventListener("targetFound", () => playSegment(0));
-      sceneRef.current.querySelector("#timelineTarget")?.addEventListener("targetFound", () => playSegment(0));
+      sceneRef.current.addEventListener("targetFound", playIntroOnTarget);
+      sceneRef.current.querySelector("#timelineTarget")?.addEventListener("targetFound", playIntroOnTarget);
       sceneRef.current.addEventListener("arError", () => {
         setLoading({ active: true, title: "Không mở được camera", note: "Hãy dùng HTTPS và kiểm tra quyền camera", progress: 100, error: "camera" });
       });
