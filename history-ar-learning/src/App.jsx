@@ -18,6 +18,8 @@ import {
   Lock,
   ArrowLeft,
   Swords,
+  MessageSquareQuote,
+  SendHorizontal,
 } from "lucide-react";
 import MapImageARScene from "./MapImageARScene.jsx";
 import TimelineEditor from "./TimelineEditor.jsx";
@@ -70,7 +72,7 @@ const courses = [
 const dienBienPhu = {
   title: "Chiến dịch Điện Biên Phủ",
   subtitle: "Bài học mẫu hoàn chỉnh",
-  videoUrl: "",
+  videoUrl: "https://www.youtube.com/embed/a6ucOeP11Gk?rel=0",
   summary:
     "Một khóa học ngắn giúp người học hiểu vì sao Điện Biên Phủ trở thành chiến thắng có ý nghĩa lớn trong lịch sử Việt Nam hiện đại.",
   learningGoals: [
@@ -352,43 +354,88 @@ function TimelinePanel() {
 
 function VideoPanel() {
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-      <div className="overflow-hidden rounded-[2rem] bg-slate-950 shadow-sm">
-        {dienBienPhu.videoUrl ? (
-          <iframe
-            className="aspect-video w-full"
-            src={dienBienPhu.videoUrl}
-            title="Video bài học"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <div className="flex aspect-video flex-col items-center justify-center bg-[radial-gradient(circle_at_center,_#334155,_#020617_70%)] p-8 text-center text-white">
-            <PlayCircle className="h-16 w-16 text-amber-300" />
-            <h3 className="mt-5 text-2xl font-black">Video bài học Điện Biên Phủ</h3>
-            <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">
-              Hiện đang dùng placeholder. Khi có video, chỉ cần gắn link iframe hoặc video URL trực tiếp trong FE.
-            </p>
-          </div>
-        )}
-      </div>
-      <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <h3 className="text-xl font-bold text-slate-950">Nội dung video</h3>
-        <div className="mt-5 space-y-4">
-          {[
-            ["00:00", "Bối cảnh lịch sử"],
-            ["02:15", "Vì sao chọn Điện Biên Phủ?"],
-            ["05:40", "Các giai đoạn chính"],
-            ["09:10", "Ý nghĩa chiến thắng"],
-          ].map(([time, title]) => (
-            <div key={time} className="flex items-center gap-4 rounded-2xl bg-slate-50 p-4">
-              <span className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-bold text-white">{time}</span>
-              <span className="font-semibold text-slate-700">{title}</span>
+    <div className="space-y-6">
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="overflow-hidden rounded-[2rem] bg-slate-950 shadow-sm">
+          {dienBienPhu.videoUrl ? (
+            <iframe
+              className="aspect-video w-full"
+              src={dienBienPhu.videoUrl}
+              title="Video bài học"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <div className="flex aspect-video flex-col items-center justify-center bg-[radial-gradient(circle_at_center,_#334155,_#020617_70%)] p-8 text-center text-white">
+              <PlayCircle className="h-16 w-16 text-amber-300" />
+              <h3 className="mt-5 text-2xl font-black">Video bài học Điện Biên Phủ</h3>
+              <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">
+                Hiện đang dùng placeholder. Khi có video, chỉ cần gắn link iframe hoặc video URL trực tiếp trong FE.
+              </p>
             </div>
-          ))}
+          )}
+        </div>
+        <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <h3 className="text-xl font-bold text-slate-950">Nội dung video</h3>
+          <div className="mt-5 space-y-4">
+            {[
+              ["00:00", "Bối cảnh lịch sử"],
+              ["02:15", "Vì sao chọn Điện Biên Phủ?"],
+              ["05:40", "Các giai đoạn chính"],
+              ["09:10", "Ý nghĩa chiến thắng"],
+            ].map(([time, title]) => (
+              <div key={time} className="flex items-center gap-4 rounded-2xl bg-slate-50 p-4">
+                <span className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-bold text-white">{time}</span>
+                <span className="font-semibold text-slate-700">{title}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+      <VideoQAPanel />
     </div>
+  );
+}
+
+function VideoQAPanel() {
+  return (
+    <section className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-7">
+      <div className="flex items-center gap-3">
+        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-950 text-white">
+          <MessageSquareQuote className="h-5 w-5" />
+        </div>
+        <div>
+          <h3 className="text-xl font-black text-slate-950">Hỏi đáp bài học</h3>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+        <label htmlFor="lesson-question" className="text-sm font-semibold text-slate-700">
+          Câu hỏi của bạn
+        </label>
+        <textarea
+          id="lesson-question"
+          rows={4}
+          placeholder="Ví dụ: Vì sao quân ta chọn chiến thuật đánh chắc, tiến chắc trong chiến dịch Điện Biên Phủ?"
+          className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400"
+        />
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-slate-500">UI demo: chưa kết nối backend, phản hồi hiện là nội dung mẫu.</p>
+          <button className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">
+            Gửi câu hỏi
+            <SendHorizontal className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-[1.5rem] border border-emerald-100 bg-emerald-50/60 p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-700">Output phản hồi</p>
+        <p className="mt-2 text-sm leading-7 text-slate-700">
+          Trong chiến dịch Điện Biên Phủ, chiến thuật đánh chắc tiến chắc giúp quân ta bảo toàn lực lượng, từng bước
+          bóc tách các cứ điểm và kiểm soát trận địa theo từng đợt tấn công.
+        </p>
+      </div>
+    </section>
   );
 }
 
