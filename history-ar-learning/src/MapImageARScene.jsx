@@ -8,7 +8,13 @@ import {
 } from "./arSpace.js";
 
 const TARGET_MIND = "/ar-targets/dien_bien_phu_map.mind";
-const DEFAULT_MARKER_ASSET = "/ar-assets/flag-marker.glb";
+const DEFAULT_MARKER_ASSET = "/ar-assets/marker.glb";
+const TABLETOP_TRACKING_OPTIONS = [
+  "filterMinCF: 0.0001",
+  "filterBeta: 0.001",
+  "warmupTolerance: 10",
+  "missTolerance: 30",
+].join("; ");
 
 const scripts = [
   "https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js",
@@ -102,14 +108,6 @@ function markerMarkup(marker, calibration) {
           rotation="90 0 0"
           scale="${modelScale.toFixed(3)} ${modelScale.toFixed(3)} ${modelScale.toFixed(3)}"
         ></a-entity>
-
-        <a-text
-          value="${escapeAttr(marker.label || marker.id)}"
-          align="center"
-          width="0.7"
-          position="0 0 0.13"
-          color="#ffffff"
-        ></a-text>
       </a-entity>
     </a-entity>
   `;
@@ -216,7 +214,7 @@ function buildScene(targetUrl, config) {
   const actions = flattenActions(config);
   return `
     <a-scene
-      mindar-image="imageTargetSrc: ${targetUrl}; autoStart: true; uiScanning: yes; uiLoading: yes; filterMinCF: 0.0001; filterBeta: 1; warmupTolerance: 8; missTolerance: 20"
+      mindar-image="imageTargetSrc: ${targetUrl}; autoStart: true; uiScanning: yes; uiLoading: yes; ${TABLETOP_TRACKING_OPTIONS}"
       color-space="sRGB"
       renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true; alpha: true"
       vr-mode-ui="enabled: false"
@@ -256,7 +254,7 @@ export default function MapImageARScene() {
   const [running, setRunning] = useState(false);
   const [selected, setSelected] = useState({ title: "Bản đồ AR", detail: "Bấm Start AR rồi quét bản đồ in." });
   const [activeVideo, setActiveVideo] = useState(null);
-  const [highlightMarkerId, setHighlightMarkerId] = useState("");
+  const [highlightMarkerLabel, setHighlightMarkerLabel] = useState("");
   const [loading, setLoading] = useState({ active: false, title: "", note: "", progress: 0, error: "" });
 
   const clearTimer = () => {
@@ -266,7 +264,8 @@ export default function MapImageARScene() {
   };
 
   const setMarkerHighlight = (markerId) => {
-    setHighlightMarkerId(markerId || "");
+    const markerLabel = configRef.current?.markers?.find((marker) => marker.id === markerId)?.label;
+    setHighlightMarkerLabel(markerLabel || markerId || "");
     const scene = sceneRef.current;
     scene?.querySelectorAll(".marker-ring").forEach((ring) => {
       ring.removeAttribute("animation");
@@ -474,9 +473,15 @@ export default function MapImageARScene() {
     const pointId = activeVideo?.pointId;
     setActiveVideo(null);
     const config = configRef.current;
+    const marker = config?.markers?.find((item) => item.id === pointId);
     const currentIndex = segmentIndexRef.current;
     const nextIndex = Math.min(currentIndex + 1, (config?.segments?.length || 1) - 1);
-    if (pointId && config?.segments?.[currentIndex]?.nextMarkerId === pointId && nextIndex !== currentIndex) {
+    const shouldContinue = pointId && config?.segments?.[currentIndex]?.nextMarkerId === pointId && nextIndex !== currentIndex;
+    setSelected({
+      title: marker?.label || pointId || "Bản đồ AR",
+      detail: shouldContinue ? "Đã xem xong video. Đang tiếp tục mạch thuyết minh." : "Đã xem xong video tại mốc này.",
+    });
+    if (shouldContinue) {
       playSegment(nextIndex);
     }
   };
@@ -527,7 +532,7 @@ export default function MapImageARScene() {
         <div className="rounded-2xl border border-white/10 bg-white/90 p-4 text-slate-950 shadow-lg backdrop-blur">
           <p className="text-sm font-black">{selected.title}</p>
           <p className="mt-1 text-xs leading-5 text-slate-600">
-            {highlightMarkerId ? `Mốc tiếp theo đang sáng: ${highlightMarkerId}. ` : ""}
+            {highlightMarkerLabel ? `Mốc tiếp theo đang sáng: ${highlightMarkerLabel}. ` : ""}
             {selected.detail}
           </p>
         </div>

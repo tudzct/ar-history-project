@@ -24,8 +24,8 @@ const actionLabels = {
 export const defaultAssetByType = {
   airplane: "/ar-assets/airplane.glb",
   "attack-arrow": "/ar-assets/attack-arrow.glb",
-  "open-video-marker": "/ar-assets/flag-marker.glb",
-  "highlight-marker": "/ar-assets/flag-marker.glb",
+  "open-video-marker": "/ar-assets/marker.glb",
+  "highlight-marker": "/ar-assets/marker.glb",
 };
 
 export const assetOrientationProfiles = {

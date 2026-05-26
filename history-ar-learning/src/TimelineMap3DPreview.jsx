@@ -12,7 +12,7 @@ import {
   yawToThreeEuler,
 } from "./arSpace.js";
 
-const MARKER_ASSET = "/ar-assets/flag-marker.glb";
+const MARKER_ASSET = "/ar-assets/marker.glb";
 
 function mediaPathToUrl(filePath = "") {
   const cleanPath = String(filePath).trim().replace(/^["']|["']$/g, "");
@@ -195,11 +195,14 @@ export default function TimelineMap3DPreview({
 
     new THREE.TextureLoader().load(MAP_IMAGE, (texture) => {
       texture.colorSpace = THREE.SRGBColorSpace;
+      // Source JPG is stored 90 degrees left; show it in the same orientation as the .mind target.
+      texture.center.set(0.5, 0.5);
+      texture.rotation = -Math.PI / 2;
       const map = new THREE.Mesh(
         new THREE.PlaneGeometry(1, TARGET_ASPECT),
         new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
       );
-      map.rotation.x = Math.PI / 2;
+      map.rotation.x = -Math.PI / 2;
       map.renderOrder = -10;
       map.userData = { type: "map" };
       root.add(map);

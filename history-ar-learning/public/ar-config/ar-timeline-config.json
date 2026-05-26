@@ -7,68 +7,68 @@
     "scaleY": 1,
     "showGuides": false
   },
- "markers": [
-  {
-    "id": "him-lam",
-    "label": "Him Lam",
-    "x": 77.3,
-    "y": 74,
-    "z": 0,
-    "visualOffsetZ": -0.06,
-    "scale": 0.15,
-    "color": "#ef4444",
-    "videoPath": "\"D:\\ghichep_monhoc\\Ky2_nam3\\CDKHMT\\HimLam\\HimLam(Moc_1).mp4\"",
-    "markerScale": 0.25
-  },
-  {
-    "id": "muong-thanh",
-    "label": "Muong Thanh",
-    "x": 64.1,
-    "y": 41.9,
-    "z": 0,
-    "visualOffsetZ": -0.06,
-    "scale": 0.15,
-    "color": "#f59e0b",
-    "videoPath": "",
-    "markerScale": 0.25
-  },
-  {
-    "id": "tan-thanh",
-    "label": "Tan Thanh",
-    "x": 21.8,
-    "y": 60.8,
-    "z": 0,
-    "visualOffsetZ": -0.06,
-    "scale": 0.15,
-    "color": "#8b5cf6",
-    "videoPath": "",
-    "markerScale": 0.25
-  },
-  {
-    "id": "thanh-minh",
-    "label": "Thanh Minh",
-    "x": 46.8,
-    "y": 55.8,
-    "z": 0,
-    "visualOffsetZ": -0.06,
-    "scale": 0.15,
-    "color": "#22c55e",
-    "videoPath": "",
-    "markerScale": 0.25
-  },
-  {
-    "id": "ta-leng",
-    "label": "Ta Leng",
-    "x": 44.8,
-    "y": 73,
-    "z": 0,
-    "visualOffsetZ": -0.06,
-    "scale": 0.2,
-    "color": "#38bdf8",
-    "videoPath": "",
-    "markerScale": 0.25
-  }
-],
+  "markers": [
+    {
+      "id": "him-lam",
+      "label": "Him Lam",
+      "x": 45,
+      "y": 60,
+      "z": 0,
+      "scale": 0.3,
+      "color": "#ef4444",
+      "videoPath": "/ar-assets/videos/him-lam.mp4",
+      "visualOffsetZ": -0.06,
+      "markerScale": 0.25
+    },
+    {
+      "id": "muong-thanh",
+      "label": "Muong Thanh",
+      "x": 30,
+      "y": 77.5,
+      "z": 0,
+      "scale": 0.3,
+      "color": "#f59e0b",
+      "videoPath": "",
+      "visualOffsetZ": -0.06,
+      "markerScale": 0.25
+    },
+    {
+      "id": "tan-thanh",
+      "label": "Tan Thanh",
+      "x": 33.5,
+      "y": 69,
+      "z": 0,
+      "scale": 0.3,
+      "color": "#8b5cf6",
+      "videoPath": "",
+      "visualOffsetZ": -0.06,
+      "markerScale": 0.25
+    },
+    {
+      "id": "thanh-minh",
+      "label": "Thanh Minh",
+      "x": 67.5,
+      "y": 37.5,
+      "z": 0,
+      "scale": 0.3,
+      "color": "#22c55e",
+      "videoPath": "",
+      "visualOffsetZ": -0.06,
+      "markerScale": 0.25
+    },
+    {
+      "id": "ta-leng",
+      "label": "Ta Leng",
+      "x": 79.5,
+      "y": 70,
+      "z": 0,
+      "scale": 0.3,
+      "color": "#38bdf8",
+      "videoPath": "",
+      "visualOffsetZ": -0.06,
+      "markerScale": 0.25
+    }
+  ],
   "segments": [
     {
       "id": "after-him-lam",
