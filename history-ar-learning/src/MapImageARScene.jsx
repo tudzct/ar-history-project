@@ -151,7 +151,9 @@ function actionMarkup(action, marker, index, calibration) {
   const yawRotation = yawToAFrameRotation(pose.yaw);
   const modelRotation = modelRotationToAFrame(pose.modelRotation);
   const axes = localAxesMarkup(Boolean(transform.showLocalAxes));
-  const label = action.label ? `<a-text value="${escapeAttr(action.label)}" align="center" width="0.7" position="0 0 0.12" color="#ffffff"></a-text>` : "";
+  const label = action.label && action.showLabel !== false
+    ? `<a-text value="${escapeAttr(action.label)}" align="center" width="0.7" position="0 0 0.12" color="#ffffff"></a-text>`
+    : "";
 
   if (assetPath) {
     return `

@@ -128,6 +128,406 @@
           "color": "#ef4444",
           "from": "80.3,81.4,0.31",
           "to": "25.3,32.1,0.31"
+        },
+        {
+          "id": "paratrooper-1",
+          "type": "model",
+          "label": "Linh nhay du 1",
+          "showLabel": false,
+          "assetPath": "/ar-assets/paratrooper.glb",
+          "startAt": 5,
+          "duration": 6.5,
+          "pointId": "him-lam",
+          "position": {
+            "x": 64.5,
+            "y": 67.5,
+            "z": 0.19
+          },
+          "path": [
+            {
+              "x": 64.5,
+              "y": 67.5,
+              "z": 0.19
+            },
+            {
+              "x": 58,
+              "y": 70,
+              "z": 0.03
+            }
+          ],
+          "transform": {
+            "z": 0.19,
+            "scale": 0.35,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false
+          }
+        },
+        {
+          "id": "paratrooper-2",
+          "type": "model",
+          "label": "Linh nhay du 2",
+          "showLabel": false,
+          "assetPath": "/ar-assets/paratrooper.glb",
+          "startAt": 5.5,
+          "duration": 6.5,
+          "pointId": "him-lam",
+          "position": {
+            "x": 62.8,
+            "y": 65.7,
+            "z": 0.19
+          },
+          "path": [
+            {
+              "x": 62.8,
+              "y": 65.7,
+              "z": 0.19
+            },
+            {
+              "x": 56,
+              "y": 66,
+              "z": 0.03
+            }
+          ],
+          "transform": {
+            "z": 0.19,
+            "scale": 0.35,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false
+          }
+        },
+        {
+          "id": "paratrooper-3",
+          "type": "model",
+          "label": "Linh nhay du 3",
+          "showLabel": false,
+          "assetPath": "/ar-assets/paratrooper.glb",
+          "startAt": 6,
+          "duration": 6.5,
+          "pointId": "him-lam",
+          "position": {
+            "x": 61.3,
+            "y": 64.5,
+            "z": 0.19
+          },
+          "path": [
+            {
+              "x": 61.3,
+              "y": 64.5,
+              "z": 0.19
+            },
+            {
+              "x": 53,
+              "y": 62,
+              "z": 0.03
+            }
+          ],
+          "transform": {
+            "z": 0.19,
+            "scale": 0.35,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false
+          }
+        },
+        {
+          "id": "paratrooper-4",
+          "type": "model",
+          "label": "Linh nhay du 4",
+          "showLabel": false,
+          "assetPath": "/ar-assets/paratrooper.glb",
+          "startAt": 6.5,
+          "duration": 6.5,
+          "pointId": "him-lam",
+          "position": {
+            "x": 59.5,
+            "y": 62.9,
+            "z": 0.19
+          },
+          "path": [
+            {
+              "x": 59.5,
+              "y": 62.9,
+              "z": 0.19
+            },
+            {
+              "x": 50,
+              "y": 58.5,
+              "z": 0.03
+            }
+          ],
+          "transform": {
+            "z": 0.19,
+            "scale": 0.35,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false
+          }
+        },
+        {
+          "id": "paratrooper-5",
+          "type": "model",
+          "label": "Linh nhay du 5",
+          "showLabel": false,
+          "assetPath": "/ar-assets/paratrooper.glb",
+          "startAt": 5.2,
+          "duration": 6.5,
+          "pointId": "him-lam",
+          "position": {
+            "x": 66,
+            "y": 66,
+            "z": 0.19
+          },
+          "path": [
+            {
+              "x": 66,
+              "y": 66,
+              "z": 0.19
+            },
+            {
+              "x": 60.5,
+              "y": 65,
+              "z": 0.03
+            }
+          ],
+          "transform": {
+            "z": 0.19,
+            "scale": 0.35,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false
+          }
+        },
+        {
+          "id": "paratrooper-6",
+          "type": "model",
+          "label": "Linh nhay du 6",
+          "showLabel": false,
+          "assetPath": "/ar-assets/paratrooper.glb",
+          "startAt": 5.7,
+          "duration": 6.5,
+          "pointId": "him-lam",
+          "position": {
+            "x": 63.8,
+            "y": 69.2,
+            "z": 0.19
+          },
+          "path": [
+            {
+              "x": 63.8,
+              "y": 69.2,
+              "z": 0.19
+            },
+            {
+              "x": 56.8,
+              "y": 73,
+              "z": 0.03
+            }
+          ],
+          "transform": {
+            "z": 0.19,
+            "scale": 0.35,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false
+          }
+        },
+        {
+          "id": "paratrooper-7",
+          "type": "model",
+          "label": "Linh nhay du 7",
+          "showLabel": false,
+          "assetPath": "/ar-assets/paratrooper.glb",
+          "startAt": 6.2,
+          "duration": 6.5,
+          "pointId": "him-lam",
+          "position": {
+            "x": 60.2,
+            "y": 67,
+            "z": 0.19
+          },
+          "path": [
+            {
+              "x": 60.2,
+              "y": 67,
+              "z": 0.19
+            },
+            {
+              "x": 52.2,
+              "y": 68,
+              "z": 0.03
+            }
+          ],
+          "transform": {
+            "z": 0.19,
+            "scale": 0.35,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false
+          }
+        },
+        {
+          "id": "paratrooper-8",
+          "type": "model",
+          "label": "Linh nhay du 8",
+          "showLabel": false,
+          "assetPath": "/ar-assets/paratrooper.glb",
+          "startAt": 6.7,
+          "duration": 6.5,
+          "pointId": "him-lam",
+          "position": {
+            "x": 57.8,
+            "y": 65,
+            "z": 0.19
+          },
+          "path": [
+            {
+              "x": 57.8,
+              "y": 65,
+              "z": 0.19
+            },
+            {
+              "x": 47,
+              "y": 64,
+              "z": 0.03
+            }
+          ],
+          "transform": {
+            "z": 0.19,
+            "scale": 0.35,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false
+          }
+        },
+        {
+          "id": "paratrooper-9",
+          "type": "model",
+          "label": "Linh nhay du 9",
+          "showLabel": false,
+          "assetPath": "/ar-assets/paratrooper.glb",
+          "startAt": 7,
+          "duration": 6.5,
+          "pointId": "him-lam",
+          "position": {
+            "x": 58,
+            "y": 60.5,
+            "z": 0.19
+          },
+          "path": [
+            {
+              "x": 58,
+              "y": 60.5,
+              "z": 0.19
+            },
+            {
+              "x": 46.5,
+              "y": 56.5,
+              "z": 0.03
+            }
+          ],
+          "transform": {
+            "z": 0.19,
+            "scale": 0.35,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false
+          }
+        },
+        {
+          "id": "paratrooper-10",
+          "type": "model",
+          "label": "Linh nhay du 10",
+          "showLabel": false,
+          "assetPath": "/ar-assets/paratrooper.glb",
+          "startAt": 7.3,
+          "duration": 6.5,
+          "pointId": "him-lam",
+          "position": {
+            "x": 55.5,
+            "y": 63.4,
+            "z": 0.19
+          },
+          "path": [
+            {
+              "x": 55.5,
+              "y": 63.4,
+              "z": 0.19
+            },
+            {
+              "x": 43.5,
+              "y": 60,
+              "z": 0.03
+            }
+          ],
+          "transform": {
+            "z": 0.19,
+            "scale": 0.35,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false
+          }
         }
       ],
       "narration": "Phat sau khi nguoi dung dong cua so tran Him Lam, dan sang moc tiep theo.",
