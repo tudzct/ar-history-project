@@ -23,8 +23,8 @@
     {
       "id": "muong-thanh",
       "label": "Muong Thanh",
-      "x": 30,
-      "y": 77.5,
+      "x": 25.5,
+      "y": 80.5,
       "z": 0,
       "scale": 0.3,
       "color": "#f59e0b",
@@ -137,7 +137,7 @@
           "assetPath": "/ar-assets/cannon.glb",
           "startAt": 7.2,
           "duration": 17,
-          "pointId": "tan-thanh",
+          "pointId": "him-lam",
           "position": {
             "x": 80.3,
             "y": 81.4,
@@ -150,8 +150,8 @@
               "z": 0.03
             },
             {
-              "x": 25.3,
-              "y": 32.1,
+              "x": 45,
+              "y": 60,
               "z": 0.03
             }
           ],
@@ -166,7 +166,8 @@
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
+            "showLocalAxes": false,
+            "holdAfterEnd": true
           }
         },
         {

@@ -264,11 +264,14 @@ export default function TimelineMap3DPreview({
 
     (activeSegment?.actions || []).forEach((action, actionIndex) => {
       const isSelected = selected?.kind === "action" && selected.actionIndex === actionIndex;
-      const isPlaying = playTime >= Number(action.startAt || 0) && playTime <= Number(action.startAt || 0) + Number(action.duration || 0);
-      const marker = state.markers?.find((item) => item.id === action.pointId);
-      const elapsed = Math.max(0, playTime - Number(action.startAt || 0));
-      const point = isPlaying || isSelected ? getActionPoint(action, marker, elapsed) : action.position || marker;
+      const start = Number(action.startAt || 0);
+      const duration = Math.max(0.1, Number(action.duration || 1));
       const transform = action.transform || {};
+      const holdAfterEnd = Boolean(transform.holdAfterEnd);
+      const isPlaying = playTime >= start && (playTime <= start + duration || holdAfterEnd);
+      const marker = state.markers?.find((item) => item.id === action.pointId);
+      const elapsed = Math.min(duration, Math.max(0, playTime - start));
+      const point = isPlaying || isSelected ? getActionPoint(action, marker, elapsed) : action.position || marker;
       const color = isSelected ? 0xfacc15 : action.type === "airplane" ? 0x38bdf8 : action.type === "bomb-drop" ? 0xf97316 : 0x22c55e;
 
       addPath(

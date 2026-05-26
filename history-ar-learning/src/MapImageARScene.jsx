@@ -296,12 +296,13 @@ export default function MapImageARScene() {
       const isCurrentSegment = action.segmentIndex === segmentIndexRef.current;
       const start = Number(action.startAt || 0);
       const duration = Math.max(0.1, Number(action.duration || 1));
-      const visible = isCurrentSegment && elapsed >= start && elapsed <= start + duration;
+      const transform = action.transform || {};
+      const holdAfterEnd = Boolean(transform.holdAfterEnd);
+      const visible = isCurrentSegment && elapsed >= start && (elapsed <= start + duration || holdAfterEnd);
       entity.setAttribute("visible", visible);
       if (!visible) return;
       const marker = config.markers.find((item) => item.id === action.pointId);
-      const localElapsed = elapsed - start;
-      const transform = action.transform || {};
+      const localElapsed = Math.min(duration, Math.max(0, elapsed - start));
       const pose = resolveActionMapPose(action, marker, localElapsed, config.calibration);
           if (action.type === "airplane") {
       console.log("AIRPLANE POSE", {
@@ -357,28 +358,15 @@ export default function MapImageARScene() {
     }, 80);
   };
 
-  const primeAudioPlayback = (audioPath = INTRO_AUDIO_PATH) => {
+  const preloadAudio = (audioPath = INTRO_AUDIO_PATH) => {
     if (!audioRef.current) audioRef.current = new Audio();
     const audio = audioRef.current;
     audio.preload = "auto";
     audio.setAttribute("playsinline", "true");
     audio.src = mediaPathToUrl(audioPath);
-    audio.muted = true;
-    audio.volume = 0;
-    const playPromise = audio.play();
-    if (playPromise?.then) {
-      playPromise
-        .then(() => {
-          audio.pause();
-          audio.currentTime = 0;
-          audio.muted = false;
-          audio.volume = 1;
-        })
-        .catch(() => {
-          audio.muted = false;
-          audio.volume = 1;
-        });
-    }
+    audio.muted = false;
+    audio.volume = 1;
+    audio.load();
   };
 
   const selectPoint = (pointId) => {
@@ -444,7 +432,7 @@ export default function MapImageARScene() {
   const startMindAR = async () => {
     if (running) return;
     targetIntroPlayedRef.current = false;
-    primeAudioPlayback();
+    preloadAudio();
     setRunning(true);
     setLoading({ active: true, title: "Đang tải AR", note: "Đang nạp MindAR và cấu hình", progress: 10, error: "" });
     try {

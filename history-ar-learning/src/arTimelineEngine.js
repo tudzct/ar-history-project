@@ -71,6 +71,6 @@ export function activeActions(segment, elapsed) {
   return (segment?.actions || []).filter((action) => {
     const start = Number(action.startAt || 0);
     const duration = Math.max(0.1, Number(action.duration || 1));
-    return elapsed >= start && elapsed <= start + duration;
+    return elapsed >= start && (elapsed <= start + duration || action.transform?.holdAfterEnd);
   });
 }
