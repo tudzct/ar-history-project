@@ -1,5 +1,6 @@
-export const TARGET_WIDTH = 1419;
-export const TARGET_HEIGHT = 1491;
+// The .mind target uses the map in its upright (clockwise-rotated) orientation.
+export const TARGET_WIDTH = 1491;
+export const TARGET_HEIGHT = 1419;
 export const TARGET_ASPECT = TARGET_HEIGHT / TARGET_WIDTH;
 
 export function clamp(value, min = 0, max = 100) {
