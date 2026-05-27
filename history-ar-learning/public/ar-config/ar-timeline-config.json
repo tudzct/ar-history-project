@@ -157,8 +157,8 @@
           ],
           "transform": {
             "z": 0.03,
-            "scale": 1.2,
-            "yawOffset": -90,
+            "scale": 0.3,
+            "yawOffset": 90,
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
@@ -580,10 +580,99 @@
       "title": "Moc 1 sang Moc 2",
       "audioPath": "/ar-assets/audios/Moc1_Moc2.MP3",
       "startAt": 0,
-      "duration": 55.14,
+      "duration": 90.2,
       "nextMarkerId": "muong-thanh",
-      "actions": [],
-      "narration": "Phat sau khi nguoi dung dong video Him Lam, dan sang moc Muong Thanh."
+      "actions": [
+        {
+    "id": "explosion-moc1-moc2-1",
+    "type": "model",
+    "label": "No bom 1",
+    "showLabel": false,
+    "assetPath": "/ar-assets/explosion.glb",
+    "startAt": 0.2,
+    "duration": 1.7,
+    "pointId": "muong-thanh",
+    "position": {
+      "x": 25.5,
+      "y": 80.5,
+      "z": 0.05
+    },
+    "transform": {
+      "z": 0.002,
+      "scale": 0.05,
+      "yawOffset": 0,
+      "modelRotationX": 90,
+      "modelRotationY": 0,
+      "modelRotationZ": 0,
+      "followPathRotation": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "offsetZ": 0,
+      "showLocalAxes": false,
+      "holdAfterEnd": false
+    }
+  },
+  {
+    "id": "explosion-moc1-moc2-2",
+    "type": "model",
+    "label": "No bom 2",
+    "showLabel": false,
+    "assetPath": "/ar-assets/explosion.glb",
+    "startAt": 0.6,
+    "duration": 2.1,
+    "pointId": "muong-thanh",
+    "position": {
+      "x": 48,
+      "y": 48,
+      "z": 0.05
+    },
+    "transform": {
+      "z": 0.002,
+      "scale": 0.05,
+      "yawOffset": 0,
+      "modelRotationX": 90,
+      "modelRotationY": 0,
+      "modelRotationZ": 0,
+      "followPathRotation": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "offsetZ": 0,
+      "showLocalAxes": false,
+      "holdAfterEnd": false
+    }
+  },
+  {
+    "id": "explosion-moc1-moc2-3",
+    "type": "model",
+    "label": "No bom 3",
+    "showLabel": false,
+    "assetPath": "/ar-assets/explosion.glb",
+    "startAt": 1.0,
+    "duration": 2.5,
+    "pointId": "muong-thanh",
+    "position": {
+      "x": 20,
+      "y": 62,
+      "z": 0.05
+    },
+    "transform": {
+      "z": 0.002,
+      "scale": 0.05,
+      "yawOffset": 0,
+      "modelRotationX": 90,
+      "modelRotationY": 0,
+      "modelRotationZ": 0,
+      "followPathRotation": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "offsetZ": 0,
+      "showLocalAxes": false,
+      "holdAfterEnd": false
+    }
+  }
+      ],
+      "narration": "Phat sau khi nguoi dung dong video Him Lam, dan sang moc Muong Thanh.",
+      "waitForPointClose": "muong-thanh"
     }
   ]
 }
