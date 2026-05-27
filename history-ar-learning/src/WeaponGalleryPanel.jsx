@@ -172,7 +172,7 @@ export default function WeaponGalleryPanel() {
         <Canvas
           shadows={!arMode}
           dpr={[1, 2]}
-          camera={{ position: [0, 0, 4], fov: 50, near: 0.1, far: 1000 }}
+          camera={{ position: [0, 0, arMode ? 6 : 4], fov: 50, near: 0.1, far: 1000 }}
           gl={{ alpha: true }}
           style={{
             position: "absolute",
@@ -189,20 +189,30 @@ export default function WeaponGalleryPanel() {
               </mesh>
             }
           >
-            <Stage
-              environment="city"
-              intensity={0.6}
-              contactShadow={arMode ? false : { opacity: 0.7, blur: 2, resolution: 512 }}
-              adjustCamera={1.2}
-            >
-              <WeaponModel url={activeWeapon.path} />
-            </Stage>
+            {arMode ? (
+              <>
+                <ambientLight intensity={2} />
+                <directionalLight position={[5, 5, 5]} intensity={2.5} />
+                <directionalLight position={[-5, 3, -5]} intensity={1.5} />
+                <hemisphereLight args={["#ffffff", "#bbbbbb", 1.5]} />
+                <WeaponModel url={activeWeapon.path} />
+              </>
+            ) : (
+              <Stage
+                environment="city"
+                intensity={0.6}
+                contactShadow={{ opacity: 0.7, blur: 2, resolution: 512 }}
+                adjustCamera={1.2}
+              >
+                <WeaponModel url={activeWeapon.path} />
+              </Stage>
+            )}
           </Suspense>
           <OrbitControls
             makeDefault
             autoRotate={!arMode}
             autoRotateSpeed={1}
-            enablePan={false}
+            enablePan={arMode}
             enableZoom={true}
           />
         </Canvas>
