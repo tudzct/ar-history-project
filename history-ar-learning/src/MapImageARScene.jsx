@@ -16,6 +16,12 @@ const TABLETOP_TRACKING_OPTIONS = [
   "warmupTolerance: 10",
   "missTolerance: 30",
 ].join("; ");
+const HIGH_QUALITY_CAMERA_CONSTRAINTS = {
+  width: { ideal: 1920 },
+  height: { ideal: 1080 },
+  frameRate: { ideal: 30, max: 30 },
+  facingMode: { ideal: "environment" },
+};
 
 const scripts = [
   "https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js",
@@ -26,6 +32,7 @@ const scripts = [
 
 let scriptPromise;
 let autoGltfAnimationRegistered = false;
+let getUserMediaRestore = null;
 
 function escapeAttr(value = "") {
   return String(value).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
@@ -56,6 +63,59 @@ function loadMindARScripts() {
     scriptPromise = scripts.reduce((chain, src) => chain.then(() => loadScript(src)), Promise.resolve());
   }
   return scriptPromise;
+}
+
+function mergeVideoConstraints(videoConstraints) {
+  const supported = navigator.mediaDevices?.getSupportedConstraints?.() || {};
+  const advanced = [
+    supported.focusMode ? { focusMode: "continuous" } : null,
+    supported.exposureMode ? { exposureMode: "continuous" } : null,
+    supported.whiteBalanceMode ? { whiteBalanceMode: "continuous" } : null,
+  ].filter(Boolean);
+  if (videoConstraints === false) return false;
+  if (videoConstraints === true || videoConstraints == null) {
+    return { ...HIGH_QUALITY_CAMERA_CONSTRAINTS, ...(advanced.length ? { advanced } : {}) };
+  }
+  if (typeof videoConstraints !== "object") return videoConstraints;
+  return {
+    ...videoConstraints,
+    width: videoConstraints.width || HIGH_QUALITY_CAMERA_CONSTRAINTS.width,
+    height: videoConstraints.height || HIGH_QUALITY_CAMERA_CONSTRAINTS.height,
+    frameRate: videoConstraints.frameRate || HIGH_QUALITY_CAMERA_CONSTRAINTS.frameRate,
+    facingMode: videoConstraints.facingMode || HIGH_QUALITY_CAMERA_CONSTRAINTS.facingMode,
+    ...(advanced.length ? { advanced: [...(Array.isArray(videoConstraints.advanced) ? videoConstraints.advanced : []), ...advanced] } : {}),
+  };
+}
+
+function installHighQualityCameraPatch() {
+  if (getUserMediaRestore || !navigator.mediaDevices?.getUserMedia) return;
+  const originalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+  navigator.mediaDevices.getUserMedia = (constraints = {}) => {
+    const nextConstraints = {
+      ...constraints,
+      video: mergeVideoConstraints(constraints.video),
+    };
+    return originalGetUserMedia(nextConstraints).catch((error) => {
+      if (error?.name !== "OverconstrainedError" && error?.name !== "ConstraintNotSatisfiedError") throw error;
+      return originalGetUserMedia(constraints);
+    });
+  };
+  getUserMediaRestore = () => {
+    navigator.mediaDevices.getUserMedia = originalGetUserMedia;
+    getUserMediaRestore = null;
+  };
+}
+
+function uninstallHighQualityCameraPatch() {
+  getUserMediaRestore?.();
+}
+
+function sharpenMindARRendering(scene) {
+  const AFRAME = window.AFRAME;
+  const renderer = scene?.renderer;
+  if (!AFRAME || !renderer) return;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(scene.parentElement?.clientWidth || window.innerWidth, scene.parentElement?.clientHeight || window.innerHeight, false);
 }
 
 function registerAutoGltfAnimation() {
@@ -257,7 +317,7 @@ function buildScene(targetUrl, config) {
     <a-scene
       mindar-image="imageTargetSrc: ${targetUrl}; autoStart: true; uiScanning: yes; uiLoading: yes; ${TABLETOP_TRACKING_OPTIONS}"
       color-space="sRGB"
-      renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true; alpha: true"
+      renderer="colorManagement: true; physicallyCorrectLights: true; antialias: true; alpha: true; precision: highp; maxCanvasWidth: 1920; maxCanvasHeight: 2560"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
       embedded
@@ -498,6 +558,7 @@ export default function MapImageARScene() {
       configRef.current = config;
       actionListRef.current = flattenActions(config);
       setLoading({ active: true, title: "Đang mở camera", note: "Hãy cho phép quyền camera khi trình duyệt hỏi", progress: 90, error: "" });
+      installHighQualityCameraPatch();
       sceneHostRef.current.innerHTML = buildScene(TARGET_MIND, config);
       sceneRef.current = sceneHostRef.current.querySelector("a-scene");
       const playIntroOnTarget = () => {
@@ -515,13 +576,18 @@ export default function MapImageARScene() {
       const markTargetLost = () => {
         targetVisibleRef.current = false;
       };
-      sceneRef.current.addEventListener("arReady", () => setLoading((prev) => ({ ...prev, active: false, progress: 100 })));
+      sceneRef.current.addEventListener("arReady", () => {
+        sharpenMindARRendering(sceneRef.current);
+        uninstallHighQualityCameraPatch();
+        setLoading((prev) => ({ ...prev, active: false, progress: 100 }));
+      });
       sceneRef.current.addEventListener("loaded", attachScreenPicker);
       sceneRef.current.addEventListener("targetFound", playIntroOnTarget);
       sceneRef.current.addEventListener("targetLost", markTargetLost);
       sceneRef.current.querySelector("#timelineTarget")?.addEventListener("targetFound", playIntroOnTarget);
       sceneRef.current.querySelector("#timelineTarget")?.addEventListener("targetLost", markTargetLost);
       sceneRef.current.addEventListener("arError", () => {
+        uninstallHighQualityCameraPatch();
         setLoading({ active: true, title: "Không mở được camera", note: "Hãy dùng HTTPS và kiểm tra quyền camera", progress: 100, error: "camera" });
       });
       sceneHostRef.current.querySelectorAll(".hotspot").forEach((hotspot) => {
@@ -536,12 +602,14 @@ export default function MapImageARScene() {
         hotspot.addEventListener("touchend", handler, { passive: false });
       });
     } catch (error) {
+      uninstallHighQualityCameraPatch();
       setLoading({ active: true, title: "Không khởi động được AR", note: error?.message || "Hãy tải lại trang và thử lại", progress: 100, error: "start" });
       setRunning(false);
     }
   };
 
   const stopMindAR = async () => {
+    uninstallHighQualityCameraPatch();
     removeScreenPicker();
     clearTimer();
     const scene = sceneRef.current;
