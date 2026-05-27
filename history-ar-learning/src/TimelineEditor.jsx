@@ -395,7 +395,7 @@ export default function TimelineEditor() {
           actionIndex: 0,
         });
       })
-      .catch(() => setSaveStatus("Không đọc được file cấu hình, đang dùng dữ liệu mẫu."));
+      .catch(() => setSaveStatus("Không đọc được file cấu hình."));
 
     fetch("/ar-config/host-info")
       .then((response) => (response.ok ? response.json() : null))
