@@ -28,7 +28,7 @@
       "z": 0,
       "scale": 0.3,
       "color": "#f59e0b",
-      "videoPath": "",
+      "videoPath": "/ar-assets/videos/doi-doc-lap.mp4",
       "visualOffsetZ": -0.06,
       "markerScale": 0.25
     },
@@ -574,6 +574,16 @@
       "narration": "Phat sau khi nguoi dung dong cua so tran Him Lam, dan sang moc tiep theo.",
       "autoPlayAfterStart": false,
       "waitForPointClose": "him-lam"
+    },
+    {
+      "id": "moc1-moc2",
+      "title": "Moc 1 sang Moc 2",
+      "audioPath": "/ar-assets/audios/Moc1_Moc2.MP3",
+      "startAt": 0,
+      "duration": 55,
+      "nextMarkerId": "muong-thanh",
+      "actions": [],
+      "narration": "Phat sau khi nguoi dung dong video Him Lam, dan sang moc Muong Thanh."
     }
   ]
 }
