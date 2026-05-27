@@ -255,6 +255,8 @@ export default function MapImageARScene() {
   const actionListRef = useRef([]);
   const segmentIndexRef = useRef(0);
   const targetIntroPlayedRef = useRef(false);
+  const targetVisibleRef = useRef(false);
+  const pendingSegmentIndexRef = useRef(null);
   const [running, setRunning] = useState(false);
   const [selected, setSelected] = useState({ title: "Bản đồ AR", detail: "Bấm Start AR rồi quét bản đồ in." });
   const [activeVideo, setActiveVideo] = useState(null);
@@ -432,6 +434,8 @@ export default function MapImageARScene() {
   const startMindAR = async () => {
     if (running) return;
     targetIntroPlayedRef.current = false;
+    targetVisibleRef.current = false;
+    pendingSegmentIndexRef.current = null;
     preloadAudio();
     setRunning(true);
     setLoading({ active: true, title: "Đang tải AR", note: "Đang nạp MindAR và cấu hình", progress: 10, error: "" });
@@ -458,14 +462,26 @@ export default function MapImageARScene() {
       sceneHostRef.current.innerHTML = buildScene(TARGET_MIND, config);
       sceneRef.current = sceneHostRef.current.querySelector("a-scene");
       const playIntroOnTarget = () => {
+        targetVisibleRef.current = true;
+        if (pendingSegmentIndexRef.current !== null) {
+          const pendingIndex = pendingSegmentIndexRef.current;
+          pendingSegmentIndexRef.current = null;
+          playSegment(pendingIndex);
+          return;
+        }
         if (targetIntroPlayedRef.current) return;
         targetIntroPlayedRef.current = true;
         playSegment(0);
       };
+      const markTargetLost = () => {
+        targetVisibleRef.current = false;
+      };
       sceneRef.current.addEventListener("arReady", () => setLoading((prev) => ({ ...prev, active: false, progress: 100 })));
       sceneRef.current.addEventListener("loaded", attachScreenPicker);
       sceneRef.current.addEventListener("targetFound", playIntroOnTarget);
+      sceneRef.current.addEventListener("targetLost", markTargetLost);
       sceneRef.current.querySelector("#timelineTarget")?.addEventListener("targetFound", playIntroOnTarget);
+      sceneRef.current.querySelector("#timelineTarget")?.addEventListener("targetLost", markTargetLost);
       sceneRef.current.addEventListener("arError", () => {
         setLoading({ active: true, title: "Không mở được camera", note: "Hãy dùng HTTPS và kiểm tra quyền camera", progress: 100, error: "camera" });
       });
@@ -495,6 +511,8 @@ export default function MapImageARScene() {
     }
     if (sceneHostRef.current) sceneHostRef.current.innerHTML = "";
     sceneRef.current = null;
+    targetVisibleRef.current = false;
+    pendingSegmentIndexRef.current = null;
     setRunning(false);
     setMarkerHighlight("");
     setLoading({ active: false, title: "", note: "", progress: 0, error: "" });
@@ -513,7 +531,16 @@ export default function MapImageARScene() {
       detail: shouldContinue ? "Đã xem xong video. Đang tiếp tục mạch thuyết minh." : "Đã xem xong video tại mốc này.",
     });
     if (shouldContinue) {
-      playSegment(nextIndex);
+      if (targetVisibleRef.current) {
+        playSegment(nextIndex);
+        return;
+      }
+      pendingSegmentIndexRef.current = nextIndex;
+      setMarkerHighlight(config?.segments?.[nextIndex]?.nextMarkerId);
+      setSelected({
+        title: marker?.label || pointId || "Bản đồ AR",
+        detail: "Đã xem xong video. Hãy đưa camera lại bản đồ để đọc tiếp mạch thuyết minh.",
+      });
     }
   };
 
