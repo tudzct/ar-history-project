@@ -20,10 +20,12 @@ const TABLETOP_TRACKING_OPTIONS = [
 const scripts = [
   "https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image.prod.js",
   "https://aframe.io/releases/1.2.0/aframe.min.js",
+  "https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.loaders.min.js",
   "https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.1.4/dist/mindar-image-aframe.prod.js",
 ];
 
 let scriptPromise;
+let autoGltfAnimationRegistered = false;
 
 function escapeAttr(value = "") {
   return String(value).replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
@@ -54,6 +56,42 @@ function loadMindARScripts() {
     scriptPromise = scripts.reduce((chain, src) => chain.then(() => loadScript(src)), Promise.resolve());
   }
   return scriptPromise;
+}
+
+function registerAutoGltfAnimation() {
+  const AFRAME = window.AFRAME;
+  if (!AFRAME || autoGltfAnimationRegistered || AFRAME.components["auto-gltf-animation"]) return;
+  autoGltfAnimationRegistered = true;
+  AFRAME.registerComponent("auto-gltf-animation", {
+    schema: {
+      src: { type: "string" },
+    },
+    init() {
+      this.mixer = null;
+      this.model = null;
+      this.clock = new AFRAME.THREE.Clock();
+      this.onModelLoaded = this.onModelLoaded.bind(this);
+      this.el.addEventListener("model-loaded", this.onModelLoaded);
+    },
+    onModelLoaded(event) {
+      const model = event.detail?.model;
+      const clips = model?.animations || [];
+      if (!clips.length) return;
+      this.model = model;
+      this.mixer = new AFRAME.THREE.AnimationMixer(model);
+      clips.forEach((clip) => this.mixer.clipAction(clip).play());
+    },
+    tick() {
+      if (!this.mixer) return;
+      this.mixer.update(this.clock.getDelta());
+    },
+    remove() {
+      this.el.removeEventListener("model-loaded", this.onModelLoaded);
+      this.mixer?.stopAllAction();
+      this.mixer = null;
+      this.model = null;
+    },
+  });
 }
 
 async function loadArConfig() {
@@ -159,8 +197,8 @@ function actionMarkup(action, marker, index, calibration) {
   if (assetPath) {
     return `
       <a-entity id="${id}" class="timeline-action timeline-action-root" data-action-index="${index}" visible="false" position="${position}" rotation="${yawRotation}" scale="${scale} ${scale} ${scale}">
-        <a-entity id="${modelId}" class="timeline-action-model" rotation="${modelRotation}">
-          <a-entity gltf-model="${escapeAttr(mediaPathToUrl(assetPath))}" scale="0.03 0.03 0.03"></a-entity>
+          <a-entity id="${modelId}" class="timeline-action-model" rotation="${modelRotation}">
+          <a-entity gltf-model="${escapeAttr(mediaPathToUrl(assetPath))}" animation-mixer="clip: *; loop: repeat" auto-gltf-animation scale="0.03 0.03 0.03"></a-entity>
           ${axes}
         </a-entity>
         ${action.type === "bomb-drop" ? `<a-sphere class="bomb-flash" radius="0.045" color="#fb923c" opacity="0.85" position="0 0 -0.02" animation="property: scale; from: 0.5 0.5 0.5; to: 2 2 2; dur: 500; dir: alternate; loop: true"></a-sphere>` : ""}
@@ -441,6 +479,7 @@ export default function MapImageARScene() {
     setLoading({ active: true, title: "Đang tải AR", note: "Đang nạp MindAR và cấu hình", progress: 10, error: "" });
     try {
       await loadMindARScripts();
+      registerAutoGltfAnimation();
       const config = await loadArConfig();
       console.table(
         config.segments.flatMap((segment) =>

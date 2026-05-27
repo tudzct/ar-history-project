@@ -185,6 +185,8 @@ export default function TimelineMap3DPreview({
 
     const root = new THREE.Group();
     scene.add(root);
+    const clock = new THREE.Clock();
+    const mixers = [];
     const hitObjects = [];
     const raycaster = new THREE.Raycaster();
     const pointer = new THREE.Vector2();
@@ -221,13 +223,32 @@ export default function TimelineMap3DPreview({
     root.add(border);
 
     const loader = new GLTFLoader();
-    const addModel = (path, fallback, setup) => {
+    const addModel = (path, fallback, setup, animationTime = 0) => {
       const normalizedPath = path ? mediaPathToUrl(path) : "";
       if (!normalizedPath) {
         setup(fallback());
         return;
       }
-      loader.load(normalizedPath, (gltf) => setup(gltf.scene), undefined, () => setup(fallback()));
+      loader.load(
+        normalizedPath,
+        (gltf) => {
+          const object = gltf.scene;
+          if (gltf.animations?.length) {
+            const mixer = new THREE.AnimationMixer(object);
+            gltf.animations.forEach((clip) => {
+              mixer.clipAction(clip).play();
+            });
+            const longestClip = Math.max(...gltf.animations.map((clip) => clip.duration || 0));
+            if (longestClip > 0) {
+              mixer.setTime(animationTime % longestClip);
+            }
+            mixers.push(mixer);
+          }
+          setup(object);
+        },
+        undefined,
+        () => setup(fallback())
+      );
     };
 
     (state.markers || []).forEach((marker) => {
@@ -317,7 +338,7 @@ export default function TimelineMap3DPreview({
         hit.userData = { type: "action", actionIndex };
         root.add(hit);
         hitObjects.push(hit);
-      });
+      }, elapsed);
     });
 
     const setPointer = (event) => {
@@ -415,7 +436,9 @@ export default function TimelineMap3DPreview({
     resize();
 
     renderer.setAnimationLoop(() => {
+      const delta = clock.getDelta();
       const time = performance.now() * 0.004;
+      mixers.forEach((mixer) => mixer.update(delta));
       root.traverse((object) => {
         if (object.userData?.pulse) {
           const scale = 1 + Math.sin(time) * 0.16;
