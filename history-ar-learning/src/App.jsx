@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PlayCircle,
@@ -132,7 +132,6 @@ const quizQuestions = [
     explain: "Timeline giúp chia nhỏ sự kiện lịch sử theo mốc thời gian dễ hiểu.",
   },
 ];
-
 function ProgressBar({ value }) {
   return (
     <div className="h-2 overflow-hidden rounded-full bg-slate-200">
@@ -217,12 +216,9 @@ function Hero({ onStart }) {
             <Sparkles className="h-4 w-4" />
             Web-app học lịch sử bằng video, quiz, timeline và AR
           </div>
-          <h1 className="max-w-3xl text-4xl font-black tracking-tight md:text-6xl">
+          <h1 className="max-w-3xl text-2xl font-black tracking-tight md:text-4xl">
             Học lịch sử như đang bước vào chính sự kiện.
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
-            Bản FE mẫu này tập trung vào trải nghiệm người học: chọn khóa học, xem video, theo dõi diễn biến bằng timeline, làm quiz và có sẵn khu vực để gắn mô phỏng AR sau này.
-          </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <button
               onClick={onStart}
@@ -264,9 +260,6 @@ function Hero({ onStart }) {
                   />
                 ))}
               </div>
-              <p className="mt-4 text-sm leading-6 text-slate-400">
-                Khu vực này sau có thể thay bằng WebXR, model 3D hoặc scene AR thật.
-              </p>
             </div>
           </div>
         </div>
@@ -393,73 +386,188 @@ function VideoPanel() {
 }
 
 function QuizPanel() {
+  const [started, setStarted] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [ranking, setRanking] = useState([
+    { name: "Lan", score: 3 },
+    { name: "Minh", score: 2 },
+    { name: "Huy", score: 2 },
+  ]);
   const score = useMemo(
     () => quizQuestions.reduce((sum, q, i) => sum + (answers[i] === q.answer ? 1 : 0), 0),
     [answers]
   );
-  const completed = Object.keys(answers).length === quizQuestions.length;
+  const currentQuestion = quizQuestions[currentIndex];
+  const pickedAnswer = answers[currentIndex];
+  const isLastQuestion = currentIndex === quizQuestions.length - 1;
+  const sortedRanking = useMemo(() => [...ranking].sort((a, b) => b.score - a.score), [ranking]);
+  const confetti = Array.from({ length: 28 }, (_, index) => ({
+    id: index,
+    left: `${6 + ((index * 13) % 88)}%`,
+    delay: `${(index % 9) * 0.12}s`,
+    color: ["#facc15", "#38bdf8", "#fb7185", "#22c55e", "#a78bfa"][index % 5],
+  }));
+  const submitQuiz = () => {
+    setSubmitted(true);
+    setRanking((prev) => [...prev.filter((item) => item.name !== "Bạn"), { name: "Bạn", score }]);
+  };
+  const restartQuiz = () => {
+    setStarted(false);
+    setSubmitted(false);
+    setCurrentIndex(0);
+    setAnswers({});
+  };
+
+  if (!started) {
+    return (
+      <div className="grid gap-6 lg:grid-cols-[1fr_0.8fr]">
+        <div className="rounded-[2rem] bg-slate-950 p-7 text-white shadow-sm">
+          <Trophy className="h-12 w-12 text-amber-300" />
+          <h3 className="mt-5 text-3xl font-semibold">Quiz kiểm tra</h3>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+            Trả lời lần lượt từng câu hỏi. Đến câu cuối, bấm Submit để tính điểm và cập nhật ranking.
+          </p>
+          <button
+            type="button"
+            onClick={() => setStarted(true)}
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-amber-300 px-6 py-3 font-semibold text-slate-950 transition hover:bg-amber-200"
+          >
+            Bắt đầu làm quiz
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+        <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
+          <h4 className="flex items-center gap-2 text-xl font-semibold text-slate-950">
+            <Trophy className="h-5 w-5 text-amber-500" />
+            Ranking
+          </h4>
+          <div className="mt-5 grid gap-3">
+            {sortedRanking.map((item, index) => (
+              <div key={item.name} className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 text-sm font-medium text-slate-700">
+                <span>#{index + 1} {item.name}</span>
+                <span>{item.score}/{quizQuestions.length}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="relative overflow-hidden rounded-[2rem] bg-slate-950 p-7 text-white shadow-sm">
+        {confetti.map((piece) => (
+          <span
+            key={piece.id}
+            className="quiz-confetti"
+            style={{ left: piece.left, animationDelay: piece.delay, backgroundColor: piece.color }}
+          />
+        ))}
+        <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
+          <div>
+            <Sparkles className="h-12 w-12 text-amber-300" />
+            <h3 className="mt-5 text-4xl font-semibold">Chúc mừng!</h3>
+            <p className="mt-3 text-lg text-slate-200">Bạn đạt {score}/{quizQuestions.length} điểm.</p>
+            <button
+              type="button"
+              onClick={restartQuiz}
+              className="mt-8 rounded-full bg-white px-6 py-3 font-semibold text-slate-950 transition hover:bg-slate-100"
+            >
+              Làm lại
+            </button>
+          </div>
+          <div className="rounded-[1.5rem] bg-white/10 p-5">
+            <h4 className="text-xl font-semibold">Ranking</h4>
+            <div className="mt-5 grid gap-3">
+              {sortedRanking.map((item, index) => (
+                <div key={item.name} className={`flex items-center justify-between rounded-2xl p-4 text-sm font-medium ${item.name === "Bạn" ? "bg-amber-300 text-slate-950" : "bg-white/10 text-white"}`}>
+                  <span>#{index + 1} {item.name}</span>
+                  <span>{item.score}/{quizQuestions.length}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[0.75fr_1.25fr]">
       <div className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-sm">
         <Trophy className="h-10 w-10 text-amber-300" />
-        <h3 className="mt-4 text-3xl font-black">Quiz kiểm tra</h3>
-        <p className="mt-3 text-sm leading-6 text-slate-300">
-          Logic quiz chạy hoàn toàn ở FE. Có thể thay câu hỏi trong mảng dữ liệu mà không cần backend.
-        </p>
+        <h3 className="mt-4 text-3xl font-semibold">Quiz kiểm tra</h3>
         <div className="mt-8 rounded-[1.5rem] bg-white/10 p-5">
-          <p className="text-sm text-slate-300">Điểm hiện tại</p>
-          <p className="mt-2 text-5xl font-black">
-            {score}/{quizQuestions.length}
-          </p>
-          {completed ? (
-            <p className="mt-3 text-sm text-emerald-300">Bạn đã hoàn thành quiz.</p>
-          ) : (
-            <p className="mt-3 text-sm text-amber-200">Hãy chọn đáp án cho tất cả câu hỏi.</p>
-          )}
+          <p className="text-sm text-slate-300">Tiến độ</p>
+          <p className="mt-2 text-5xl font-semibold">{currentIndex + 1}/{quizQuestions.length}</p>
+          <p className="mt-3 text-sm text-amber-200">Chọn đáp án rồi chuyển sang câu tiếp theo.</p>
+        </div>
+        <div className="mt-5 rounded-[1.5rem] bg-white/10 p-5">
+          <p className="text-sm font-medium text-slate-200">Ranking</p>
+          <div className="mt-3 grid gap-2">
+            {sortedRanking.slice(0, 3).map((item, index) => (
+              <div key={item.name} className="flex justify-between rounded-xl bg-white/10 px-3 py-2 text-sm">
+                <span>#{index + 1} {item.name}</span>
+                <span>{item.score}/{quizQuestions.length}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        {quizQuestions.map((q, qIndex) => (
-          <div key={q.question} className="rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-slate-200">
-            <h4 className="font-bold text-slate-950">
-              Câu {qIndex + 1}. {q.question}
-            </h4>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              {q.options.map((option, optionIndex) => {
-                const picked = answers[qIndex] === optionIndex;
-                const isCorrect = q.answer === optionIndex;
-                const answered = answers[qIndex] !== undefined;
-                return (
-                  <button
-                    key={option}
-                    onClick={() => setAnswers((prev) => ({ ...prev, [qIndex]: optionIndex }))}
-                    className={`flex items-center justify-between rounded-2xl border p-4 text-left text-sm font-semibold transition ${
-                      picked && isCorrect
-                        ? "border-emerald-500 bg-emerald-50 text-emerald-800"
-                        : picked && !isCorrect
-                        ? "border-red-500 bg-red-50 text-red-800"
-                        : answered && isCorrect
-                        ? "border-emerald-200 bg-emerald-50/50 text-emerald-700"
-                        : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-                    }`}
-                  >
-                    {option}
-                    {picked && isCorrect ? <CheckCircle2 className="h-5 w-5" /> : null}
-                    {picked && !isCorrect ? <XCircle className="h-5 w-5" /> : null}
-                  </button>
-                );
-              })}
-            </div>
-            {answers[qIndex] !== undefined ? (
-              <p className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm leading-6 text-slate-600">
-                {q.explain}
-              </p>
-            ) : null}
-          </div>
-        ))}
+      <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-orange-600">Câu {currentIndex + 1}</p>
+        <h4 className="mt-3 text-2xl font-semibold text-slate-950">{currentQuestion.question}</h4>
+        <div className="mt-6 grid gap-3 md:grid-cols-2">
+          {currentQuestion.options.map((option, optionIndex) => {
+            const picked = pickedAnswer === optionIndex;
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setAnswers((prev) => ({ ...prev, [currentIndex]: optionIndex }))}
+                className={`flex min-h-16 items-center justify-between rounded-2xl border p-4 text-left text-sm font-medium transition ${
+                  picked ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                }`}
+              >
+                {option}
+                {picked ? <CheckCircle2 className="h-5 w-5" /> : null}
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
+            disabled={currentIndex === 0}
+            className="rounded-full bg-slate-100 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Câu trước
+          </button>
+          {isLastQuestion ? (
+            <button
+              type="button"
+              onClick={submitQuiz}
+              disabled={pickedAnswer === undefined}
+              className="rounded-full bg-amber-300 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Submit
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setCurrentIndex((index) => Math.min(quizQuestions.length - 1, index + 1))}
+              disabled={pickedAnswer === undefined}
+              className="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Câu tiếp theo
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -467,8 +575,8 @@ function QuizPanel() {
 
 function ARPanel() {
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-      <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
+    <div className="grid gap-6">
+      <div className="hidden rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
         <h3 className="flex items-center gap-2 text-2xl font-black text-slate-950">
           <Boxes className="h-6 w-6" />
           Khu vực mô phỏng AR
@@ -551,12 +659,12 @@ function LessonView({ onBack }) {
           </div>
 
           <div className="border-b border-slate-200 bg-white p-3">
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="flex flex-wrap justify-center gap-2 md:flex-nowrap md:justify-start md:overflow-x-auto">
               {tabs.map(([key, label, Icon]) => (
                 <button
                   key={key}
                   onClick={() => setTab(key)}
-                  className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-3 text-sm font-bold transition ${
+                  className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-bold transition md:shrink-0 ${
                     tab === key ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-slate-100"
                   }`}
                 >

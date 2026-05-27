@@ -38,3 +38,27 @@ body {
 .ar-scene-host .mindar-ui-overlay {
   inset: 0 !important;
 }
+
+.quiz-confetti {
+  position: absolute;
+  top: -18px;
+  width: 10px;
+  height: 16px;
+  border-radius: 3px;
+  opacity: 0;
+  animation: quiz-confetti-fall 2.6s ease-in infinite;
+}
+
+@keyframes quiz-confetti-fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -20px, 0) rotate(0deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(36px, 420px, 0) rotate(720deg);
+  }
+}

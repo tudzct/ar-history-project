@@ -597,7 +597,7 @@ export default function MapImageARScene() {
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-amber-200">MindAR image tracking</p>
             <h4 className="mt-3 text-3xl font-black">Quét bản đồ lịch sử 2D</h4>
             <p className="mt-3 text-sm leading-6 text-slate-300">
-              Bấm Start AR, cho phép camera, rồi hướng điện thoại vào bản đồ in. Điện thoại sẽ đọc cấu hình mới nhất đã lưu từ editor.
+              Bấm "Bắt đầu học với AR", cho phép camera, rồi hướng điện thoại vào bản đồ in.
             </p>
           </div>
         </div>
@@ -626,19 +626,21 @@ export default function MapImageARScene() {
       ) : null}
 
       <div className="absolute bottom-4 left-4 right-4 z-30 grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-        <div className="rounded-2xl border border-white/10 bg-white/90 p-4 text-slate-950 shadow-lg backdrop-blur">
-          <p className="text-sm font-black">{selected.title}</p>
-          <p className="mt-1 text-xs leading-5 text-slate-600">
-            {highlightMarkerLabel ? `Mốc tiếp theo đang sáng: ${highlightMarkerLabel}. ` : ""}
-            {selected.detail}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <a href={MAP_IMAGE} target="_blank" rel="noreferrer" className="rounded-full bg-white px-4 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:bg-slate-100">
-            Bản đồ target
-          </a>
+        {running ? (
+          <div className="rounded-2xl border border-white/10 bg-white/90 p-4 text-slate-950 shadow-lg backdrop-blur">
+            <p className="text-sm font-black">{selected.title}</p>
+            <p className="mt-1 text-xs leading-5 text-slate-600">
+              {highlightMarkerLabel ? `Mốc tiếp theo đang sáng: ${highlightMarkerLabel}. ` : ""}
+              {selected.detail}
+            </p>
+          </div>
+        ) : null}
+        <div className={`flex flex-wrap gap-2 ${running ? "" : "justify-center md:justify-start"}`}>
+            <a href={MAP_IMAGE} target="_blank" rel="noreferrer" className="rounded-full bg-white px-4 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:bg-slate-100">
+              Bản đồ target
+            </a>
           <button type="button" onClick={running ? stopMindAR : startMindAR} className="rounded-full bg-amber-300 px-5 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:bg-amber-200">
-            {running ? "Dừng AR" : "Bắt đầu AR + voice"}
+            {running ? "Dừng AR" : "Bắt đầu học với AR"}
           </button>
           {running ? (
             <button type="button" onClick={() => playSegment(segmentIndexRef.current)} className="rounded-full bg-emerald-400 px-5 py-3 text-sm font-black text-slate-950 shadow-lg transition hover:bg-emerald-300">
