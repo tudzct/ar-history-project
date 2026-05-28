@@ -12,7 +12,9 @@ dist/
 
 # Media files
 *.mp4
+*.MP4
 *.mp3
+*.MP3
 
 # Unity generated folders
 [Ll]ibrary/
