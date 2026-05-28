@@ -45,6 +45,8 @@ export const env = {
   maxQuestionLength: readNumber("MAX_QUESTION_LENGTH", 1000, { min: 1 }),
   minRelevanceScore: readNumber("MIN_RELEVANCE_SCORE", 0.2, { min: -1 }),
   embeddingRetryCount: readNumber("EMBEDDING_RETRY_COUNT", 2, { min: 0 }),
+  geminiGenerationRetryCount: readNumber("GEMINI_GENERATION_RETRY_COUNT", 2, { min: 0 }),
+  geminiRetryBaseDelayMs: readNumber("GEMINI_RETRY_BASE_DELAY_MS", 700, { min: 0 }),
 };
 
 if (env.overlapSeconds >= env.chunkSeconds) {

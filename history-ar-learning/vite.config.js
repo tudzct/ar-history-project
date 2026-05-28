@@ -70,5 +70,11 @@ export default defineConfig({
     fs: {
       allow: [process.cwd(), "D:/ghichep_monhoc/Ky2_nam3/CDKHMT"],
     },
+    proxy: {
+      "/api": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+    },
   },
 });

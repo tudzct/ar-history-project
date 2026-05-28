@@ -6,6 +6,72 @@ const ai = new GoogleGenAI({ apiKey: env.geminiApiKey });
 
 export const NO_INFORMATION_ANSWER = "Mình không tìm thấy thông tin này trong video.";
 
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function readGeminiErrorPayload(error) {
+  const rawMessage = String(error?.message || "");
+  const jsonStartIndex = rawMessage.indexOf("{");
+
+  if (jsonStartIndex === -1) {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(rawMessage.slice(jsonStartIndex));
+  } catch {
+    return undefined;
+  }
+}
+
+function readGeminiErrorInfo(error) {
+  const payload = readGeminiErrorPayload(error);
+  const geminiError = payload?.error || error?.error || {};
+  const status = String(geminiError.status || error?.status || "").toUpperCase();
+  const message = String(geminiError.message || error?.message || "");
+  const code = Number(geminiError.code || error?.code || error?.statusCode || 0);
+
+  return { code, message, status };
+}
+
+function isTransientGeminiError(error) {
+  const { code, message, status } = readGeminiErrorInfo(error);
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    code === 429 ||
+    code === 500 ||
+    code === 503 ||
+    status === "RESOURCE_EXHAUSTED" ||
+    status === "UNAVAILABLE" ||
+    status === "DEADLINE_EXCEEDED" ||
+    status === "INTERNAL" ||
+    normalizedMessage.includes("high demand") ||
+    normalizedMessage.includes("try again later")
+  );
+}
+
+function getRetryDelay(attempt) {
+  return env.geminiRetryBaseDelayMs * (attempt + 1);
+}
+
+function toGeminiAppError(error) {
+  const { code, message, status } = readGeminiErrorInfo(error);
+
+  if (isTransientGeminiError(error)) {
+    return new AppError(
+      "Gemini đang quá tải. Vui lòng thử lại sau vài giây.",
+      503,
+      status || message || code ? { code, status, message } : undefined
+    );
+  }
+
+  return new AppError("Gemini request failed.", 502, message || error?.message);
+}
+
 export async function createEmbedding(text) {
   const normalizedText = String(text || "").trim();
 
@@ -43,21 +109,41 @@ function readGeminiText(response) {
 }
 
 export async function generateAnswer(prompt) {
-  const response = await ai.models.generateContent({
-    model: env.geminiGenerationModel,
-    contents: prompt,
-    config: {
-      temperature: env.geminiTemperature,
-    },
-  });
+  let lastError;
 
-  const answer = readGeminiText(response).trim();
+  for (let attempt = 0; attempt <= env.geminiGenerationRetryCount; attempt += 1) {
+    try {
+      const response = await ai.models.generateContent({
+        model: env.geminiGenerationModel,
+        contents: prompt,
+        config: {
+          temperature: env.geminiTemperature,
+        },
+      });
 
-  if (!answer) {
-    throw new AppError("Gemini did not return an answer.", 502);
+      const answer = readGeminiText(response).trim();
+
+      if (!answer) {
+        throw new AppError("Gemini did not return an answer.", 502);
+      }
+
+      return answer;
+    } catch (error) {
+      lastError = error;
+
+      if (error instanceof AppError) {
+        throw error;
+      }
+
+      if (!isTransientGeminiError(error) || attempt >= env.geminiGenerationRetryCount) {
+        throw toGeminiAppError(error);
+      }
+
+      await wait(getRetryDelay(attempt));
+    }
   }
 
-  return answer;
+  throw toGeminiAppError(lastError);
 }
 
 function readChunkText(chunk) {
@@ -77,33 +163,59 @@ function readChunkText(chunk) {
 }
 
 export async function generateAnswerStream(prompt, onChunk) {
-  const stream = await ai.models.generateContentStream({
-    model: env.geminiGenerationModel,
-    contents: prompt,
-    config: {
-      temperature: env.geminiTemperature,
-    },
-  });
+  let lastError;
 
-  let answer = "";
+  for (let attempt = 0; attempt <= env.geminiGenerationRetryCount; attempt += 1) {
+    let answer = "";
 
-  for await (const chunk of stream) {
-    const text = readChunkText(chunk);
-    if (!text) {
-      continue;
+    try {
+      const stream = await ai.models.generateContentStream({
+        model: env.geminiGenerationModel,
+        contents: prompt,
+        config: {
+          temperature: env.geminiTemperature,
+        },
+      });
+
+      for await (const chunk of stream) {
+        const text = readChunkText(chunk);
+        if (!text) {
+          continue;
+        }
+
+        answer += text;
+        onChunk(text);
+      }
+
+      const normalized = answer.trim();
+
+      if (!normalized) {
+        throw new AppError("Gemini did not return an answer.", 502);
+      }
+
+      return normalized;
+    } catch (error) {
+      const partialAnswer = answer.trim();
+
+      if (partialAnswer && isTransientGeminiError(error)) {
+        return partialAnswer;
+      }
+
+      lastError = error;
+
+      if (error instanceof AppError) {
+        throw error;
+      }
+
+      if (!isTransientGeminiError(error) || attempt >= env.geminiGenerationRetryCount) {
+        throw toGeminiAppError(error);
+      }
+
+      await wait(getRetryDelay(attempt));
     }
-
-    answer += text;
-    onChunk(text);
   }
 
-  const normalized = answer.trim();
-
-  if (!normalized) {
-    throw new AppError("Gemini did not return an answer.", 502);
-  }
-
-  return normalized;
+  throw toGeminiAppError(lastError);
 }
 
 export function buildVideoAnswerPrompt(question, sources) {
