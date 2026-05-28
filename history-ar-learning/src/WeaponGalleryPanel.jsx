@@ -5,10 +5,12 @@ import { Info, Shield, Crosshair, Camera, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const WEAPONS = [
+  // === PHE VIỆT MINH ===
   {
     id: "mosin",
     name: "Mosin-Nagant M91",
     type: "Súng trường nạp đạn thủ công",
+    side: "Việt Minh",
     description: "Khẩu súng trường huyền thoại gắn liền với quân đội Xô Viết, được trang bị rộng rãi cho bộ đội Việt Minh trong chiến dịch Điện Biên Phủ. Súng bắn tỉa với độ chính xác cao và sức sát thương lớn, nổi tiếng qua những trận đánh bắn tỉa chiến hào.",
     path: "/ar-assets/weapons/mosin_nagant_m91.glb",
   },
@@ -16,13 +18,56 @@ const WEAPONS = [
     id: "ak47",
     name: "AK-47",
     type: "Súng trường tấn công",
+    side: "Việt Minh",
     description: "Mặc dù AK-47 không phổ biến trong giai đoạn Điện Biên Phủ (1954) bằng các loại vũ khí khác, nhưng nó là biểu tượng cực kỳ quan trọng của quân đội Việt Nam trong các giai đoạn kháng chiến sau này nhờ khả năng hoạt động cực kỳ bền bỉ trong điều kiện khắc nghiệt.",
     path: "/ar-assets/weapons/ak47.glb",
+  },
+  {
+    id: "ppsh41",
+    name: "PPSh-41",
+    type: "Tiểu liên",
+    side: "Việt Minh",
+    description: "Tiểu liên huyền thoại của Liên Xô với băng đạn tròn chứa 71 viên, tốc độ bắn lên tới 900 viên/phút. Được Liên Xô và Trung Quốc viện trợ số lượng lớn cho Việt Minh, trở thành vũ khí chủ lực trong các trận đánh cận chiến tại Điện Biên Phủ.",
+    path: "/ar-assets/weapons/ppsh-41.glb",
+  },
+  {
+    id: "sks",
+    name: "SKS",
+    type: "Súng trường bán tự động",
+    side: "Việt Minh",
+    description: "Súng trường bán tự động do Liên Xô thiết kế, được Trung Quốc sản xuất hàng loạt dưới tên Type 56. Độ chính xác cao, dễ bảo trì trong điều kiện rừng núi khắc nghiệt, là vũ khí được bộ đội Việt Minh tin dùng.",
+    path: "/ar-assets/weapons/sks_semi_automatic_rifle.glb",
+  },
+  {
+    id: "dshk",
+    name: "DShK 12.7mm",
+    type: "Súng máy phòng không",
+    side: "Việt Minh",
+    description: "Súng máy hạng nặng cỡ nòng 12.7mm, đóng vai trò cực kỳ quan trọng trong phòng không tại Điện Biên Phủ. DShK đã bắn hạ và làm hư hỏng nhiều máy bay vận tải và chiến đấu của Pháp, góp phần cắt đứt đường tiếp tế đường không của đối phương.",
+    path: "/ar-assets/weapons/dshk_metro_2033_redux.glb",
+  },
+  // === PHE PHÁP ===
+  {
+    id: "mas36",
+    name: "MAS-36 Paratrooper",
+    type: "Súng trường nạp đạn thủ công",
+    side: "Pháp",
+    description: "Phiên bản lính dù của súng trường tiêu chuẩn MAS-36 của quân đội Pháp. Thiết kế gọn nhẹ với báng gập, dễ mang theo khi nhảy dù. Được sử dụng rộng rãi bởi lính dù Pháp tại cứ điểm Điện Biên Phủ.",
+    path: "/ar-assets/weapons/mas_36_paratrooper_rifle.glb",
+  },
+  {
+    id: "mat49",
+    name: "MAT-49",
+    type: "Tiểu liên",
+    side: "Pháp",
+    description: "Tiểu liên tiêu chuẩn của quân đội Pháp tại Đông Dương, đặc biệt phổ biến trong lực lượng lính dù. Thiết kế gọn nhẹ với ống ngắm gập, băng đạn 32 viên, phù hợp cho tác chiến cận chiến trong hầm hào.",
+    path: "/ar-assets/weapons/mat-49.glb",
   },
   {
     id: "ar15",
     name: "AR-15",
     type: "Súng trường tấn công",
+    side: "Pháp",
     description: "Góp mặt chủ yếu vào giai đoạn Chiến tranh Việt Nam sau này. Trọng lượng nhẹ, tốc độ bắn nhanh nhưng đòi hỏi bảo trì thường xuyên. Đại diện cho vũ khí bộ binh của phe đối phương.",
     path: "/ar-assets/weapons/ar15.glb",
   },
@@ -101,12 +146,13 @@ export default function WeaponGalleryPanel() {
             Vũ khí lịch sử
           </h3>
           <p className="mt-3 text-sm leading-6 text-slate-600">
-            Khám phá chi tiết các loại vũ khí nổi bật. Bạn có thể dùng chuột hoặc tay để xoay, phóng to, thu nhỏ mô hình 3D.
+            Khám phá chi tiết {WEAPONS.length} loại vũ khí nổi bật trong chiến dịch Điện Biên Phủ. Bạn có thể dùng chuột hoặc tay để xoay, phóng to, thu nhỏ mô hình 3D.
           </p>
 
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 space-y-3 max-h-[400px] overflow-y-auto pr-1">
             {WEAPONS.map((weapon) => {
               const isActive = weapon.id === activeId;
+              const isVietMinh = weapon.side === "Việt Minh";
               return (
                 <button
                   key={weapon.id}
@@ -118,7 +164,16 @@ export default function WeaponGalleryPanel() {
                   }`}
                 >
                   <div>
-                    <p className="font-bold">{weapon.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold">{weapon.name}</p>
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        isVietMinh
+                          ? isActive ? "bg-red-500/30 text-red-300" : "bg-red-100 text-red-700"
+                          : isActive ? "bg-blue-500/30 text-blue-300" : "bg-blue-100 text-blue-700"
+                      }`}>
+                        {weapon.side}
+                      </span>
+                    </div>
                     <p className={`text-xs mt-1 ${isActive ? "text-slate-300" : "text-slate-500"}`}>
                       {weapon.type}
                     </p>
