@@ -219,6 +219,7 @@ function normalizeTransform(action) {
     offsetZ: Number(action?.transform?.offsetZ ?? action?.modelOffsetZ ?? 0),
     followPathRotation: Boolean(action?.transform?.followPathRotation ?? ["airplane", "attack-arrow", "bomb-drop"].includes(action?.type)),
     showLocalAxes: Boolean(action?.transform?.showLocalAxes ?? false),
+    animationSpeed: Number(action?.transform?.animationSpeed ?? 1),
   };
 }
 

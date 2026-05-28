@@ -125,6 +125,7 @@ function registerAutoGltfAnimation() {
   AFRAME.registerComponent("auto-gltf-animation", {
     schema: {
       src: { type: "string" },
+      speed: { type: "number", default: 1 },
     },
     init() {
       this.mixer = null;
@@ -143,7 +144,7 @@ function registerAutoGltfAnimation() {
     },
     tick() {
       if (!this.mixer) return;
-      this.mixer.update(this.clock.getDelta());
+      this.mixer.update(this.clock.getDelta() * Math.max(0, Number(this.data.speed || 1)));
     },
     remove() {
       this.el.removeEventListener("model-loaded", this.onModelLoaded);
@@ -250,6 +251,7 @@ function actionMarkup(action, marker, index, calibration) {
   const yawRotation = yawToAFrameRotation(pose.yaw);
   const modelRotation = modelRotationToAFrame(pose.modelRotation);
   const axes = localAxesMarkup(Boolean(transform.showLocalAxes));
+  const animationSpeed = Math.max(0, Number(transform.animationSpeed || 1));
   const label = action.label && action.showLabel !== false
     ? `<a-text value="${escapeAttr(action.label)}" align="center" width="0.7" position="0 0 0.12" color="#ffffff"></a-text>`
     : "";
@@ -258,7 +260,7 @@ function actionMarkup(action, marker, index, calibration) {
     return `
       <a-entity id="${id}" class="timeline-action timeline-action-root" data-action-index="${index}" visible="false" position="${position}" rotation="${yawRotation}" scale="${scale} ${scale} ${scale}">
           <a-entity id="${modelId}" class="timeline-action-model" rotation="${modelRotation}">
-          <a-entity gltf-model="${escapeAttr(mediaPathToUrl(assetPath))}" animation-mixer="clip: *; loop: repeat" auto-gltf-animation scale="0.03 0.03 0.03"></a-entity>
+          <a-entity gltf-model="${escapeAttr(mediaPathToUrl(assetPath))}" animation-mixer="clip: *; loop: repeat" auto-gltf-animation="speed: ${animationSpeed}" scale="0.03 0.03 0.03"></a-entity>
           ${axes}
         </a-entity>
         ${action.type === "bomb-drop" ? `<a-sphere class="bomb-flash" radius="0.045" color="#fb923c" opacity="0.85" position="0 0 -0.02" animation="property: scale; from: 0.5 0.5 0.5; to: 2 2 2; dur: 500; dir: alternate; loop: true"></a-sphere>` : ""}

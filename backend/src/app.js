@@ -9,10 +9,25 @@ import { errorHandler, notFoundHandler } from "./middlewares/errorHandler.js";
 const app = express();
 const allowedOrigins = env.frontendUrl.split(",").map((origin) => origin.trim()).filter(Boolean);
 
+function isDevOrigin(origin = "") {
+  try {
+    const { hostname } = new URL(origin);
+    return (
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname.startsWith("192.168.") ||
+      hostname.startsWith("10.") ||
+      /^172\.(1[6-9]|2\d|3[0-1])\./.test(hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin) || isDevOrigin(origin)) {
         callback(null, true);
         return;
       }

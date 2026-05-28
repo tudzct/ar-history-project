@@ -580,96 +580,405 @@
       "title": "Moc 1 sang Moc 2",
       "audioPath": "/ar-assets/audios/Moc1_Moc2.MP3",
       "startAt": 0,
-      "duration": 90.2,
+      "duration": 60.5,
       "nextMarkerId": "muong-thanh",
       "actions": [
         {
-    "id": "explosion-moc1-moc2-1",
-    "type": "model",
-    "label": "No bom 1",
-    "showLabel": false,
-    "assetPath": "/ar-assets/explosion.glb",
-    "startAt": 0.2,
-    "duration": 1.7,
-    "pointId": "muong-thanh",
-    "position": {
-      "x": 25.5,
-      "y": 80.5,
-      "z": 0.05
-    },
-    "transform": {
-      "z": 0.002,
-      "scale": 0.05,
-      "yawOffset": 0,
-      "modelRotationX": 90,
-      "modelRotationY": 0,
-      "modelRotationZ": 0,
-      "followPathRotation": false,
-      "offsetX": 0,
-      "offsetY": 0,
-      "offsetZ": 0,
-      "showLocalAxes": false,
-      "holdAfterEnd": false
-    }
-  },
-  {
-    "id": "explosion-moc1-moc2-2",
-    "type": "model",
-    "label": "No bom 2",
-    "showLabel": false,
-    "assetPath": "/ar-assets/explosion.glb",
-    "startAt": 0.6,
-    "duration": 2.1,
-    "pointId": "muong-thanh",
-    "position": {
-      "x": 48,
-      "y": 48,
-      "z": 0.05
-    },
-    "transform": {
-      "z": 0.002,
-      "scale": 0.05,
-      "yawOffset": 0,
-      "modelRotationX": 90,
-      "modelRotationY": 0,
-      "modelRotationZ": 0,
-      "followPathRotation": false,
-      "offsetX": 0,
-      "offsetY": 0,
-      "offsetZ": 0,
-      "showLocalAxes": false,
-      "holdAfterEnd": false
-    }
-  },
-  {
-    "id": "explosion-moc1-moc2-3",
-    "type": "model",
-    "label": "No bom 3",
-    "showLabel": false,
-    "assetPath": "/ar-assets/explosion.glb",
-    "startAt": 1.0,
-    "duration": 2.5,
-    "pointId": "muong-thanh",
-    "position": {
-      "x": 20,
-      "y": 62,
-      "z": 0.05
-    },
-    "transform": {
-      "z": 0.002,
-      "scale": 0.05,
-      "yawOffset": 0,
-      "modelRotationX": 90,
-      "modelRotationY": 0,
-      "modelRotationZ": 0,
-      "followPathRotation": false,
-      "offsetX": 0,
-      "offsetY": 0,
-      "offsetZ": 0,
-      "showLocalAxes": false,
-      "holdAfterEnd": false
-    }
-  }
+          "id": "attack-arrow-moc1-moc2",
+          "type": "model",
+          "label": "Mui ten tien cong sang moc 2",
+          "showLabel": false,
+          "assetPath": "/ar-assets/arrow.glb",
+          "startAt": 16,
+          "duration": 8,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 45,
+            "y": 60,
+            "z": 0.06
+          },
+          "path": [
+            {
+              "x": 45,
+              "y": 60,
+              "z": 0.06
+            },
+            {
+              "x": 25.5,
+              "y": 80.5,
+              "z": 0.06
+            }
+          ],
+          "transform": {
+            "z": 0.06,
+            "scale": 0.32,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": true,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "holdAfterEnd": false
+          }
+        },
+        {
+          "id": "defense-fence-moc1-moc2",
+          "type": "model",
+          "label": "Hang rao phong ngu",
+          "showLabel": false,
+          "assetPath": "/ar-assets/fence.glb",
+          "startAt": 25,
+          "duration": 18,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 30.5,
+            "y": 78.5,
+            "z": 0.035
+          },
+          "transform": {
+            "z": 0.035,
+            "scale": 0.22,
+            "yawOffset": -35,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "holdAfterEnd": false
+          }
+        },
+        {
+          "id": "running-soldier-moc1-moc2-1",
+          "type": "model",
+          "label": "Linh xung phong 1",
+          "showLabel": false,
+          "assetPath": "/ar-assets/running-soldier.glb",
+          "startAt": 33.2,
+          "duration": 6.8,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 40,
+            "y": 69,
+            "z": 0.045
+          },
+          "path": [
+            {
+              "x": 40,
+              "y": 69,
+              "z": 0.045
+            },
+            {
+              "x": 30,
+              "y": 78,
+              "z": 0.045
+            }
+          ],
+          "transform": {
+            "z": 0.045,
+            "scale": 0.2,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": true,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "animationSpeed": 2
+          }
+        },
+        {
+          "id": "running-soldier-moc1-moc2-2",
+          "type": "model",
+          "label": "Linh xung phong 2",
+          "showLabel": false,
+          "assetPath": "/ar-assets/running-soldier.glb",
+          "startAt": 33.8,
+          "duration": 6.6,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 42,
+            "y": 66.5,
+            "z": 0.045
+          },
+          "path": [
+            {
+              "x": 42,
+              "y": 66.5,
+              "z": 0.045
+            },
+            {
+              "x": 31.5,
+              "y": 80.5,
+              "z": 0.045
+            }
+          ],
+          "transform": {
+            "z": 0.045,
+            "scale": 0.2,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": true,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "animationSpeed": 2
+          }
+        },
+        {
+          "id": "running-soldier-moc1-moc2-3",
+          "type": "model",
+          "label": "Linh xung phong 3",
+          "showLabel": false,
+          "assetPath": "/ar-assets/running-soldier.glb",
+          "startAt": 34.4,
+          "duration": 6.4,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 37.5,
+            "y": 72,
+            "z": 0.045
+          },
+          "path": [
+            {
+              "x": 37.5,
+              "y": 72,
+              "z": 0.045
+            },
+            {
+              "x": 28.5,
+              "y": 77,
+              "z": 0.045
+            }
+          ],
+          "transform": {
+            "z": 0.045,
+            "scale": 0.2,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": true,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "animationSpeed": 2
+          }
+        },
+        {
+          "id": "tent-fire-moc1-moc2-1",
+          "type": "model",
+          "label": "Leu bi ban chay 1",
+          "showLabel": false,
+          "assetPath": "/ar-assets/explosion.glb",
+          "startAt": 34,
+          "duration": 2.4,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 28.8,
+            "y": 76.8,
+            "z": 0.04
+          },
+          "transform": {
+            "z": 0.004,
+            "scale": 0.045,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "holdAfterEnd": false
+          }
+        },
+        {
+          "id": "tent-fire-moc1-moc2-2",
+          "type": "model",
+          "label": "Leu bi ban chay 2",
+          "showLabel": false,
+          "assetPath": "/ar-assets/explosion.glb",
+          "startAt": 35.2,
+          "duration": 2.4,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 31.2,
+            "y": 79.2,
+            "z": 0.04
+          },
+          "transform": {
+            "z": 0.004,
+            "scale": 0.045,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "holdAfterEnd": false
+          }
+        },
+        {
+          "id": "tent-fire-moc1-moc2-3",
+          "type": "model",
+          "label": "Leu bi ban chay 3",
+          "showLabel": false,
+          "assetPath": "/ar-assets/explosion.glb",
+          "startAt": 36.4,
+          "duration": 2.4,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 33.2,
+            "y": 77.4,
+            "z": 0.04
+          },
+          "transform": {
+            "z": 0.004,
+            "scale": 0.045,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "holdAfterEnd": false
+          }
+        },
+        {
+          "id": "french-cannon-muong-thanh",
+          "type": "model",
+          "label": "Phao Phap ban tra",
+          "showLabel": false,
+          "assetPath": "/ar-assets/cannon.glb",
+          "startAt": 41,
+          "duration": 14,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 25.5,
+            "y": 80.5,
+            "z": 0.035
+          },
+          "transform": {
+            "z": 0.035,
+            "scale": 0.24,
+            "yawOffset": -25,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "holdAfterEnd": false
+          }
+        },
+        {
+          "id": "counter-fire-moc1-moc2-1",
+          "type": "model",
+          "label": "Phao kich ban tra 1",
+          "showLabel": false,
+          "assetPath": "/ar-assets/explosion.glb",
+          "startAt": 42,
+          "duration": 2.8,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 38,
+            "y": 63,
+            "z": 0.04
+          },
+          "transform": {
+            "z": 0.004,
+            "scale": 0.055,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "holdAfterEnd": false
+          }
+        },
+        {
+          "id": "counter-fire-moc1-moc2-2",
+          "type": "model",
+          "label": "Phao kich ban tra 2",
+          "showLabel": false,
+          "assetPath": "/ar-assets/explosion.glb",
+          "startAt": 44.5,
+          "duration": 3,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 42,
+            "y": 59.5,
+            "z": 0.04
+          },
+          "transform": {
+            "z": 0.004,
+            "scale": 0.055,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "holdAfterEnd": false
+          }
+        },
+        {
+          "id": "counter-fire-moc1-moc2-3",
+          "type": "model",
+          "label": "Phao kich ban tra 3",
+          "showLabel": false,
+          "assetPath": "/ar-assets/explosion.glb",
+          "startAt": 47,
+          "duration": 3,
+          "pointId": "muong-thanh",
+          "position": {
+            "x": 35,
+            "y": 66.5,
+            "z": 0.04
+          },
+          "transform": {
+            "z": 0.004,
+            "scale": 0.055,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "followPathRotation": false,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "showLocalAxes": false,
+            "holdAfterEnd": false
+          }
+        }
       ],
       "narration": "Phat sau khi nguoi dung dong video Him Lam, dan sang moc Muong Thanh.",
       "waitForPointClose": "muong-thanh"
