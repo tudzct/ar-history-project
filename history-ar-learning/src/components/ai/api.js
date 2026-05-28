@@ -38,6 +38,12 @@ export function fetchVideos({ relatedMarkerId } = {}) {
   return request(`/videos${query}`);
 }
 
+export function deleteVideo(videoId) {
+  return request(`/videos/${videoId}`, {
+    method: "DELETE",
+  });
+}
+
 export function fetchMessages(videoId) {
   return request(`/videos/${videoId}/messages`);
 }
