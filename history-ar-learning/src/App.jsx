@@ -18,12 +18,13 @@ import {
   Lock,
   ArrowLeft,
   Swords,
-  MessageSquareQuote,
-  SendHorizontal,
+  ShieldUser,
 } from "lucide-react";
 import MapImageARScene from "./MapImageARScene.jsx";
 import TimelineEditor from "./TimelineEditor.jsx";
 import WeaponGalleryPanel from "./WeaponGalleryPanel.jsx";
+import VideoAITutorPage from "./pages/VideoAITutorPage.jsx";
+import VideoLessonChatPanel from "./components/ai/VideoLessonChatPanel.jsx";
 
 const courses = [
   {
@@ -353,14 +354,25 @@ function TimelinePanel() {
 }
 
 function VideoPanel() {
+  const [playerStart, setPlayerStart] = useState(0);
+  const playerParams = new URLSearchParams({
+    rel: "0",
+    start: String(Math.floor(playerStart || 0)),
+    autoplay: playerStart > 0 ? "1" : "0",
+  });
+  const playerSrc = dienBienPhu.videoUrl
+    ? `${dienBienPhu.videoUrl.split("?")[0]}?${playerParams.toString()}`
+    : "";
+
   return (
     <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid items-center gap-6 lg:grid-cols-[7fr_3fr]">
         <div className="overflow-hidden rounded-[2rem] bg-slate-950 shadow-sm">
           {dienBienPhu.videoUrl ? (
             <iframe
+              key={playerSrc}
               className="aspect-video w-full"
-              src={dienBienPhu.videoUrl}
+              src={playerSrc}
               title="Video bài học"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
@@ -375,67 +387,9 @@ function VideoPanel() {
             </div>
           )}
         </div>
-        <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
-          <h3 className="text-xl font-bold text-slate-950">Nội dung video</h3>
-          <div className="mt-5 space-y-4">
-            {[
-              ["00:00", "Bối cảnh lịch sử"],
-              ["02:15", "Vì sao chọn Điện Biên Phủ?"],
-              ["05:40", "Các giai đoạn chính"],
-              ["09:10", "Ý nghĩa chiến thắng"],
-            ].map(([time, title]) => (
-              <div key={time} className="flex items-center gap-4 rounded-2xl bg-slate-50 p-4">
-                <span className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-bold text-white">{time}</span>
-                <span className="font-semibold text-slate-700">{title}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        <VideoLessonChatPanel youtubeUrl={dienBienPhu.videoUrl} onJumpToTime={(seconds) => setPlayerStart(seconds)} />
       </div>
-      <VideoQAPanel />
     </div>
-  );
-}
-
-function VideoQAPanel() {
-  return (
-    <section className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-7">
-      <div className="flex items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-2xl bg-slate-950 text-white">
-          <MessageSquareQuote className="h-5 w-5" />
-        </div>
-        <div>
-          <h3 className="text-xl font-black text-slate-950">Hỏi đáp bài học</h3>
-        </div>
-      </div>
-
-      <div className="mt-5 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-        <label htmlFor="lesson-question" className="text-sm font-semibold text-slate-700">
-          Câu hỏi của bạn
-        </label>
-        <textarea
-          id="lesson-question"
-          rows={4}
-          placeholder="Ví dụ: Vì sao quân ta chọn chiến thuật đánh chắc, tiến chắc trong chiến dịch Điện Biên Phủ?"
-          className="mt-2 w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-slate-400"
-        />
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-slate-500">UI demo: chưa kết nối backend, phản hồi hiện là nội dung mẫu.</p>
-          <button className="inline-flex items-center gap-2 rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800">
-            Gửi câu hỏi
-            <SendHorizontal className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-4 rounded-[1.5rem] border border-emerald-100 bg-emerald-50/60 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-700">Output phản hồi</p>
-        <p className="mt-2 text-sm leading-7 text-slate-700">
-          Trong chiến dịch Điện Biên Phủ, chiến thuật đánh chắc tiến chắc giúp quân ta bảo toàn lực lượng, từng bước
-          bóc tách các cứ điểm và kiểm soát trận địa theo từng đợt tấn công.
-        </p>
-      </div>
-    </section>
   );
 }
 
@@ -567,6 +521,7 @@ function LessonView({ onBack }) {
     ["ar", "AR", Boxes],
     ["gallery", "Vũ khí", Swords],
     ["ar-editor", "AR Editor", Layers3],
+    ["ai-video", "AI Bot Admin", ShieldUser],
   ];
 
   return (
@@ -609,6 +564,15 @@ function LessonView({ onBack }) {
                 >
                   <Icon className="h-4 w-4" />
                   {label}
+                  {key === "ai-video" ? (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] ${
+                        tab === key ? "bg-amber-300 text-slate-950" : "bg-slate-200 text-slate-700"
+                      }`}
+                    >
+                      Admin
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -659,6 +623,7 @@ function LessonView({ onBack }) {
               ) : null}
               {tab === "video" ? <VideoPanel /> : null}
               {tab === "timeline" ? <TimelinePanel /> : null}
+              {tab === "ai-video" ? <VideoAITutorPage /> : null}
               {tab === "quiz" ? <QuizPanel /> : null}
               {tab === "ar" ? <ARPanel /> : null}
               {tab === "gallery" ? <WeaponGalleryPanel /> : null}
