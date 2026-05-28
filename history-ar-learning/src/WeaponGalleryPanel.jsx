@@ -1,4 +1,4 @@
-import React, { useState, Suspense, useRef, useEffect, useCallback } from "react";
+import { useState, Suspense, useRef, useEffect, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Stage, useGLTF } from "@react-three/drei";
 import { Info, Shield, Crosshair, Camera, X } from "lucide-react";

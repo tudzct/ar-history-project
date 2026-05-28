@@ -18,10 +18,13 @@ import {
   Lock,
   ArrowLeft,
   Swords,
+  ShieldUser,
 } from "lucide-react";
 import MapImageARScene from "./MapImageARScene.jsx";
 import TimelineEditor from "./TimelineEditor.jsx";
 import WeaponGalleryPanel from "./WeaponGalleryPanel.jsx";
+import VideoAITutorPage from "./pages/VideoAITutorPage.jsx";
+import VideoLessonChatPanel from "./components/ai/VideoLessonChatPanel.jsx";
 
 const courses = [
   {
@@ -70,7 +73,7 @@ const courses = [
 const dienBienPhu = {
   title: "Chiến dịch Điện Biên Phủ",
   subtitle: "Bài học mẫu hoàn chỉnh",
-  videoUrl: "",
+  videoUrl: "https://www.youtube.com/embed/a6ucOeP11Gk?rel=0",
   summary:
     "Một khóa học ngắn giúp người học hiểu vì sao Điện Biên Phủ trở thành chiến thắng có ý nghĩa lớn trong lịch sử Việt Nam hiện đại.",
   learningGoals: [
@@ -344,42 +347,40 @@ function TimelinePanel() {
 }
 
 function VideoPanel() {
+  const [playerStart, setPlayerStart] = useState(0);
+  const playerParams = new URLSearchParams({
+    rel: "0",
+    start: String(Math.floor(playerStart || 0)),
+    autoplay: playerStart > 0 ? "1" : "0",
+  });
+  const playerSrc = dienBienPhu.videoUrl
+    ? `${dienBienPhu.videoUrl.split("?")[0]}?${playerParams.toString()}`
+    : "";
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-      <div className="overflow-hidden rounded-[2rem] bg-slate-950 shadow-sm">
-        {dienBienPhu.videoUrl ? (
-          <iframe
-            className="aspect-video w-full"
-            src={dienBienPhu.videoUrl}
-            title="Video bài học"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <div className="flex aspect-video flex-col items-center justify-center bg-[radial-gradient(circle_at_center,_#334155,_#020617_70%)] p-8 text-center text-white">
-            <PlayCircle className="h-16 w-16 text-amber-300" />
-            <h3 className="mt-5 text-2xl font-black">Video bài học Điện Biên Phủ</h3>
-            <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">
-              Hiện đang dùng placeholder. Khi có video, chỉ cần gắn link iframe hoặc video URL trực tiếp trong FE.
-            </p>
-          </div>
-        )}
-      </div>
-      <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <h3 className="text-xl font-bold text-slate-950">Nội dung video</h3>
-        <div className="mt-5 space-y-4">
-          {[
-            ["00:00", "Bối cảnh lịch sử"],
-            ["02:15", "Vì sao chọn Điện Biên Phủ?"],
-            ["05:40", "Các giai đoạn chính"],
-            ["09:10", "Ý nghĩa chiến thắng"],
-          ].map(([time, title]) => (
-            <div key={time} className="flex items-center gap-4 rounded-2xl bg-slate-50 p-4">
-              <span className="rounded-xl bg-slate-950 px-3 py-2 text-xs font-bold text-white">{time}</span>
-              <span className="font-semibold text-slate-700">{title}</span>
+    <div className="space-y-6">
+      <div className="grid items-center gap-6 lg:grid-cols-[7fr_3fr]">
+        <div className="overflow-hidden rounded-[2rem] bg-slate-950 shadow-sm">
+          {dienBienPhu.videoUrl ? (
+            <iframe
+              key={playerSrc}
+              className="aspect-video w-full"
+              src={playerSrc}
+              title="Video bài học"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <div className="flex aspect-video flex-col items-center justify-center bg-[radial-gradient(circle_at_center,_#334155,_#020617_70%)] p-8 text-center text-white">
+              <PlayCircle className="h-16 w-16 text-amber-300" />
+              <h3 className="mt-5 text-2xl font-black">Video bài học Điện Biên Phủ</h3>
+              <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">
+                Hiện đang dùng placeholder. Khi có video, chỉ cần gắn link iframe hoặc video URL trực tiếp trong FE.
+              </p>
             </div>
-          ))}
+          )}
         </div>
+        <VideoLessonChatPanel youtubeUrl={dienBienPhu.videoUrl} onJumpToTime={(seconds) => setPlayerStart(seconds)} />
       </div>
     </div>
   );
@@ -628,6 +629,7 @@ function LessonView({ onBack }) {
     ["ar", "AR", Boxes],
     ["gallery", "Vũ khí", Swords],
     ["ar-editor", "AR Editor", Layers3],
+    ["ai-video", "AI Bot Admin", ShieldUser],
   ];
 
   return (
@@ -670,6 +672,15 @@ function LessonView({ onBack }) {
                 >
                   <Icon className="h-4 w-4" />
                   {label}
+                  {key === "ai-video" ? (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] ${
+                        tab === key ? "bg-amber-300 text-slate-950" : "bg-slate-200 text-slate-700"
+                      }`}
+                    >
+                      Admin
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -720,6 +731,7 @@ function LessonView({ onBack }) {
               ) : null}
               {tab === "video" ? <VideoPanel /> : null}
               {tab === "timeline" ? <TimelinePanel /> : null}
+              {tab === "ai-video" ? <VideoAITutorPage /> : null}
               {tab === "quiz" ? <QuizPanel /> : null}
               {tab === "ar" ? <ARPanel /> : null}
               {tab === "gallery" ? <WeaponGalleryPanel /> : null}
