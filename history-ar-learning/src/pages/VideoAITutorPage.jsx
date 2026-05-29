@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Filter, ShieldUser } from "lucide-react";
-import VideoIndexer from "../components/ai/VideoIndexer.jsx";
-import VideoList from "../components/ai/VideoList.jsx";
+import { useState } from 'react';
+import { Filter, ShieldUser } from 'lucide-react';
+import VideoIndexer from '../components/ai/VideoIndexer.jsx';
+import VideoList from '../components/ai/VideoList.jsx';
 
 export default function VideoAITutorPage() {
   const [refreshKey, setRefreshKey] = useState(0);
-  const [relatedMarkerId, setRelatedMarkerId] = useState("");
+  const [relatedMarkerId, setRelatedMarkerId] = useState('');
 
   function handleIndexed() {
     setRefreshKey((current) => current + 1);
@@ -20,8 +20,12 @@ export default function VideoAITutorPage() {
               <ShieldUser className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.16em] text-amber-300">Admin Zone</p>
-              <h2 className="mt-1 text-3xl font-black">Quản trị nguồn video AI</h2>
+              <p className="text-sm font-bold uppercase tracking-[0.16em] text-amber-300">
+                Admin Zone
+              </p>
+              <h2 className="mt-1 text-3xl font-black">
+                Quản trị nguồn video AI
+              </h2>
             </div>
           </div>
           <div className="flex w-full items-center gap-2 rounded-full bg-white/10 px-4 py-2 md:w-80">
@@ -29,18 +33,14 @@ export default function VideoAITutorPage() {
             <input
               value={relatedMarkerId}
               onChange={(event) => setRelatedMarkerId(event.target.value)}
-              placeholder="Lọc marker, ví dụ: him-lam"
-              className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-400"
+              placeholder="Vd: HimLam"
+              className="Transcript sẽ được lưu để chatbot tra cứu. min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-slate-400"
             />
           </div>
         </div>
       </section>
 
-      <p className="rounded-2xl bg-amber-50 p-4 text-sm font-semibold text-amber-800 ring-1 ring-amber-200">
-        Tab này dành cho Admin: chỉ import/index URL video và quản lý danh sách video đã index.
-      </p>
-
-      <div className="grid gap-6 xl:grid-cols-[0.42fr_0.58fr]">
+      <div className="grid gap-6">
         <VideoIndexer onIndexed={handleIndexed} />
         <VideoList
           selectedVideoId=""

@@ -30,7 +30,7 @@ export const defaultAssetByType = {
 
 export const assetOrientationProfiles = {
   airplane: {
-    label: "Airplane GLB default",
+    label: "Máy bay GLB default",
     z: 0.16,
     scale: 1,
     yawOffset: 0,
@@ -40,7 +40,7 @@ export const assetOrientationProfiles = {
     modelRotationZ: 0,
   },
   airplaneFlip: {
-    label: "Airplane flipped",
+    label: "Máy bay flipped",
     z: 0.16,
     scale: 1,
     yawOffset: 0,
@@ -50,7 +50,7 @@ export const assetOrientationProfiles = {
     modelRotationZ: 180,
   },
   airplaneOld: {
-    label: "Airplane old preset",
+    label: "Máy bay old preset",
     z: 0.16,
     scale: 1,
     yawOffset: 0,

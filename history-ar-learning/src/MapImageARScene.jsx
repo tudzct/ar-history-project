@@ -443,7 +443,7 @@ export default function MapImageARScene() {
       } catch (error) {
         setSelected((current) => ({
           ...current,
-          detail: `Trinh duyet dang chan audio: ${error?.message || "hay bam Phat lai voice"}.`,
+          detail: `Trinh duyet dang chan audio: ${error?.message || "click Phát lại voice"}.`,
         }));
       }
     }

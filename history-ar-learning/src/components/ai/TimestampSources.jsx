@@ -1,17 +1,17 @@
 import { Clock3 } from "lucide-react";
 
-export default function TimestampSources({ sources, onJump }) {
+export default function TimestampNguồn({ sources, onJump }) {
   if (!sources?.length) {
     return null;
   }
 
-  const limitedSources = sources.slice(0, 3);
+  const limitedNguồn = sources.slice(0, 3);
 
   return (
     <div className="mt-3 space-y-2">
       <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">Nguồn</p>
       <div className="flex flex-wrap gap-2">
-        {limitedSources.map((source) => (
+        {limitedNguồn.map((source) => (
           <button
             key={`${source.chunkId}-${source.startTime}`}
             type="button"

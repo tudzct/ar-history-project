@@ -53,7 +53,7 @@ export default function VideoList({
   }, [refreshKey, relatedMarkerId]);
 
   async function handleDelete(video) {
-    const shouldDelete = window.confirm(`Xóa video "${video.title}" khỏi danh sách đã index? Transcript chunks và lịch sử chat liên quan cũng sẽ bị xóa.`);
+    const shouldDelete = window.confirm(`Xóa video "" from the indexed list? Related transcript chunks and chat history will also be deleted.`);
 
     if (!shouldDelete) {
       return;

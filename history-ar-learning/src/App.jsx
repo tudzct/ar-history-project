@@ -1,5 +1,5 @@
-﻿import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+﻿import { useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   PlayCircle,
   Trophy,
@@ -18,50 +18,57 @@ import {
   ArrowLeft,
   Swords,
   ShieldUser,
-} from "lucide-react";
-import MapImageARScene from "./MapImageARScene.jsx";
-import TimelineEditor from "./TimelineEditor.jsx";
-import WeaponGalleryPanel from "./WeaponGalleryPanel.jsx";
-import VideoAITutorPage from "./pages/VideoAITutorPage.jsx";
-import VideoLessonChatPanel from "./components/ai/VideoLessonChatPanel.jsx";
+  User,
+  LogOut,
+  Mail,
+  KeyRound,
+  Globe,
+} from 'lucide-react';
+import MapImageARScene from './MapImageARScene.jsx';
+import TimelineEditor from './TimelineEditor.jsx';
+import WeaponGalleryPanel from './WeaponGalleryPanel.jsx';
+import VideoAITutorPage from './pages/VideoAITutorPage.jsx';
+import VideoLessonChatPanel from './components/ai/VideoLessonChatPanel.jsx';
 
 const courses = [
   {
-    id: "dien-bien-phu",
-    title: "Chiến dịch Điện Biên Phủ",
-    period: "1953 - 1954",
-    status: "Đang học",
+    id: 'dien-bien-phu',
+    title: 'Chiến dịch Điện Biên Phủ',
+    period: '1953 - 1954',
+    status: 'Đang học',
     progress: 68,
-    accent: "from-amber-500 to-orange-600",
+    accent: 'from-amber-500 to-orange-600',
     image:
-      "https://images.unsplash.com/photo-1519682337058-a94d519337bc?q=80&w=1200&auto=format&fit=crop",
+      'https://images.unsplash.com/photo-1519682337058-a94d519337bc?q=80&w=1200&auto=format&fit=crop',
     description:
-      "Tìm hiểu bối cảnh, diễn biến, chiến thuật và ý nghĩa lịch sử của chiến thắng Điện Biên Phủ.",
+      'Tìm hiểu bối cảnh, diễn biến, chiến thuật và ý nghĩa lịch sử của chiến thắng Điện Biên Phủ.',
     lessons: 5,
     quiz: 12,
     ar: true,
   },
   {
-    id: "bach-dang",
-    title: "Trận Bạch Đằng",
-    period: "938",
-    status: "Sắp mở",
+    id: 'bach-dang',
+    title: 'Trận Bạch Đằng',
+    period: '938',
+    status: 'Sắp mở',
     progress: 0,
-    accent: "from-sky-500 to-blue-700",
-    description: "Mô phỏng địa hình sông nước, cọc gỗ và chiến thuật thủy chiến.",
+    accent: 'from-sky-500 to-blue-700',
+    description:
+      'Mô phỏng địa hình sông nước, cọc gỗ và chiến thuật thủy chiến.',
     lessons: 4,
     quiz: 8,
     ar: true,
     locked: true,
   },
   {
-    id: "tay-son",
-    title: "Phong trào Tây Sơn",
-    period: "1771 - 1802",
-    status: "Sắp mở",
+    id: 'tay-son',
+    title: 'Phong trào Tây Sơn',
+    period: '1771 - 1802',
+    status: 'Sắp mở',
     progress: 0,
-    accent: "from-emerald-500 to-teal-700",
-    description: "Theo dõi hành trình khởi nghĩa, thống nhất đất nước và các trận đánh lớn.",
+    accent: 'from-emerald-500 to-teal-700',
+    description:
+      'Theo dõi hành trình khởi nghĩa, thống nhất đất nước và các trận đánh lớn.',
     lessons: 6,
     quiz: 10,
     ar: true,
@@ -70,70 +77,194 @@ const courses = [
 ];
 
 const dienBienPhu = {
-  title: "Chiến dịch Điện Biên Phủ",
-  subtitle: "Bài học mẫu hoàn chỉnh",
-  videoUrl: "https://www.youtube.com/embed/a6ucOeP11Gk?rel=0",
+  title: 'Chiến dịch Điện Biên Phủ',
+  subtitle: 'Bài học mẫu hoàn chỉnh',
+  videoUrl: 'https://www.youtube.com/embed/a6ucOeP11Gk?rel=0',
   summary:
-    "Một khóa học ngắn giúp người học hiểu vì sao Điện Biên Phủ trở thành chiến thắng có ý nghĩa lớn trong lịch sử Việt Nam hiện đại.",
+    'Một khóa học ngắn giúp người học hiểu vì sao Điện Biên Phủ trở thành chiến thắng có ý nghĩa lớn trong lịch sử Việt Nam hiện đại.',
   learningGoals: [
-    "Nắm được bối cảnh trước chiến dịch",
-    "Theo dõi các giai đoạn chính theo timeline",
-    "Hiểu vai trò của địa hình, hậu cần và chiến thuật",
-    "Kiểm tra kiến thức bằng quiz tương tác",
+    'Nắm được bối cảnh trước chiến dịch',
+    'Theo dõi các giai đoạn chính theo timeline',
+    'Hiểu vai trò của địa hình, hậu cần và chiến thuật',
+    'Kiểm tra kiến thức bằng quiz tương tác',
   ],
   timeline: [
     {
-      date: "Cuối 1953",
-      title: "Hình thành tập đoàn cứ điểm",
-      text: "Pháp xây dựng Điện Biên Phủ thành cứ điểm mạnh nhằm kiểm soát khu vực Tây Bắc và tạo lợi thế quân sự.",
-      tag: "Bối cảnh",
+      date: 'Cuối 1953',
+      title: 'Hình thành tập đoàn cứ điểm',
+      text: 'Pháp xây dựng Điện Biên Phủ thành cứ điểm mạnh nhằm kiểm soát khu vực Tây Bắc và tạo lợi thế quân sự.',
+      tag: 'Bối cảnh',
     },
     {
-      date: "13/03/1954",
-      title: "Mở màn chiến dịch",
-      text: "Quân ta bắt đầu tiến công, tập trung vào các cứ điểm quan trọng để phá thế phòng thủ ban đầu.",
-      tag: "Giai đoạn 1",
+      date: '13/03/1954',
+      title: 'Mở màn chiến dịch',
+      text: 'Quân ta bắt đầu tiến công, tập trung vào các cứ điểm quan trọng để phá thế phòng thủ ban đầu.',
+      tag: 'Giai đoạn 1',
     },
     {
-      date: "30/03 - 26/04/1954",
-      title: "Tấn công các cứ điểm phía Đông",
-      text: "Chiến sự diễn ra quyết liệt, hai bên giằng co từng vị trí. Đây là giai đoạn thể hiện rõ vai trò công sự và hỏa lực.",
-      tag: "Giai đoạn 2",
+      date: '30/03 - 26/04/1954',
+      title: 'Tấn công các cứ điểm phía Đông',
+      text: 'Chiến sự diễn ra quyết liệt, hai bên giằng co từng vị trí. Đây là giai đoạn thể hiện rõ vai trò công sự và hỏa lực.',
+      tag: 'Giai đoạn 2',
     },
     {
-      date: "01/05 - 07/05/1954",
-      title: "Tổng công kích",
-      text: "Quân ta mở đợt tấn công cuối, siết chặt vòng vây và giành thắng lợi vào ngày 07/05/1954.",
-      tag: "Kết thúc",
+      date: '01/05 - 07/05/1954',
+      title: 'Tổng công kích',
+      text: 'Quân ta mở đợt tấn công cuối, siết chặt vòng vây và giành thắng lợi vào ngày 07/05/1954.',
+      tag: 'Kết thúc',
     },
   ],
 };
 
 const quizQuestions = [
   {
-    question: "Chiến dịch Điện Biên Phủ kết thúc vào ngày nào?",
-    options: ["13/03/1954", "30/04/1954", "07/05/1954", "02/09/1954"],
+    question: 'Chiến dịch Điện Biên Phủ kết thúc vào ngày nào?',
+    options: ['13/03/1954', '30/04/1954', '07/05/1954', '02/09/1954'],
     answer: 2,
-    explain: "Chiến dịch kết thúc thắng lợi vào ngày 07/05/1954.",
+    explain: 'The campaign ended in victory on 07/05/1954.',
   },
   {
-    question: "Yếu tố nào được nhấn mạnh trong mô phỏng AR của bài học này?",
-    options: ["Thời trang", "Địa hình và cứ điểm", "Âm nhạc", "Thương mại"],
+    question: 'Yếu tố nào được nhấn mạnh trong mô phỏng AR của bài học này?',
+    options: ['Thời trang', 'Địa hình và cứ điểm', 'Âm nhạc', 'Thương mại'],
     answer: 1,
-    explain: "AR có thể dùng để mô phỏng địa hình, cứ điểm, đường tiến công và vòng vây.",
+    explain:
+      'AR có thể dùng để mô phỏng địa hình, cứ điểm, đường tiến công và vòng vây.',
   },
   {
-    question: "Timeline trong bài học giúp người học làm gì?",
+    question: 'Timeline trong bài học giúp người học làm gì?',
     options: [
-      "Theo dõi diễn biến theo thời gian",
-      "Đăng nhập tài khoản",
-      "Mua khóa học",
-      "Tạo backend",
+      'Theo dõi diễn biến theo thời gian',
+      'Đăng nhập tài khoản',
+      'Mua khóa học',
+      'Tạo backend',
     ],
     answer: 0,
-    explain: "Timeline giúp chia nhỏ sự kiện lịch sử theo mốc thời gian dễ hiểu.",
+    explain:
+      'Timeline giúp chia nhỏ sự kiện lịch sử theo mốc thời gian dễ hiểu.',
   },
 ];
+
+const mockUsers = [
+  {
+    role: 'admin',
+    email: 'admin@gmail.com',
+    password: 'admin123',
+    name: 'Admin',
+  },
+  {
+    role: 'user',
+    email: 'user@gmail.com',
+    password: 'user123',
+    name: 'User',
+  },
+];
+
+function LoginScreen({ onLogin }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    setError('');
+
+    const account = mockUsers.find(
+      (item) =>
+        item.email.toLowerCase() === email.trim().toLowerCase() &&
+        item.password === password,
+    );
+
+    if (!account) {
+      setError('Sai email hoặc mật khẩu. Vui lòng thử lại.');
+      return;
+    }
+
+    onLogin(account);
+  }
+
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 p-4 text-slate-950 md:p-8">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(251,146,60,0.2),transparent_35%),radial-gradient(circle_at_85%_80%,rgba(250,204,21,0.14),transparent_32%)]" />
+      <div className="absolute -right-32 top-8 h-80 w-80 rounded-full bg-orange-400/20 blur-3xl" />
+      <div className="absolute -left-20 bottom-0 h-96 w-96 rounded-full bg-slate-600/20 blur-3xl" />
+      <div className="relative mx-auto grid min-h-[calc(100vh-4rem)] max-w-xl place-items-center">
+        <section className="w-full rounded-[2rem] bg-white p-6 shadow-2xl ring-1 ring-white/40 md:p-8">
+          <h2 className="text-2xl font-black">Đăng nhập</h2>
+
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <label className="block">
+              <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <Mail className="h-4 w-4" />
+                Email
+              </span>
+              <input
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                type="email"
+                placeholder="you@example.com"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:bg-white"
+                required
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-slate-700">
+                <KeyRound className="h-4 w-4" />
+                Mật khẩu
+              </span>
+              <input
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                type="password"
+                placeholder="Nhập mật khẩu"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:bg-white"
+                required
+              />
+            </label>
+
+            {error ? (
+              <p className="rounded-2xl bg-red-50 p-3 text-sm font-semibold text-red-700 ring-1 ring-red-200">
+                {error}
+              </p>
+            ) : null}
+
+            <button
+              type="submit"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+            >
+              <ShieldUser className="h-4 w-4" />
+              Đăng nhập
+            </button>
+
+            <button
+              type="button"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              <Globe className="h-4 w-4" />
+              Google
+            </button>
+
+            <div className="flex items-center justify-between pt-1 text-sm">
+              <button
+                type="button"
+                className="font-semibold text-slate-600 transition hover:text-slate-950"
+              >
+                Đăng ký
+              </button>
+              <button
+                type="button"
+                className="font-semibold text-slate-600 transition hover:text-slate-950"
+              >
+                Quên mật khẩu
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </div>
+  );
+}
+
 function ProgressBar({ value }) {
   return (
     <div className="h-2 overflow-hidden rounded-full bg-slate-200">
@@ -162,7 +293,9 @@ function CourseCard({ course, onOpen }) {
       onClick={() => !course.locked && onOpen(course.id)}
       className="group relative overflow-hidden rounded-[2rem] bg-white p-5 text-left shadow-sm ring-1 ring-slate-200 transition hover:shadow-xl"
     >
-      <div className={`absolute inset-x-0 top-0 h-28 bg-gradient-to-br ${course.accent}`} />
+      <div
+        className={`absolute inset-x-0 top-0 h-28 bg-gradient-to-br ${course.accent}`}
+      />
       <div className="relative flex min-h-[260px] flex-col justify-between">
         <div>
           <div className="mb-8 flex items-center justify-between">
@@ -171,7 +304,9 @@ function CourseCard({ course, onOpen }) {
           </div>
           <div className="rounded-[1.5rem] bg-white/95 p-5 shadow-sm">
             <h3 className="text-xl font-bold text-slate-950">{course.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{course.description}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {course.description}
+            </p>
             <div className="mt-5 grid grid-cols-3 gap-2 text-center">
               <div className="rounded-2xl bg-slate-50 p-3">
                 <BookOpen className="mx-auto h-5 w-5 text-slate-700" />
@@ -198,7 +333,7 @@ function CourseCard({ course, onOpen }) {
           </div>
           <ProgressBar value={course.progress} />
           <div className="mt-4 flex items-center justify-between text-sm font-semibold text-slate-900">
-            <span>{course.locked ? "Xem trước nội dung" : "Vào khóa học"}</span>
+            <span>{course.locked ? 'Xem trước nội dung' : 'Vào khóa học'}</span>
             <ChevronRight className="h-5 w-5 transition group-hover:translate-x-1" />
           </div>
         </div>
@@ -254,10 +389,10 @@ function Hero({ onStart }) {
                     transition={{ delay: index * 0.015 }}
                     className={`rounded-xl ${
                       [4, 10, 11, 17, 22].includes(index)
-                        ? "bg-orange-400/80 shadow-lg shadow-orange-500/20"
+                        ? 'bg-orange-400/80 shadow-lg shadow-orange-500/20'
                         : [7, 8, 13, 19, 20, 25].includes(index)
-                        ? "bg-emerald-400/70"
-                        : "bg-white/10"
+                          ? 'bg-emerald-400/70'
+                          : 'bg-white/10'
                     }`}
                   />
                 ))}
@@ -288,15 +423,17 @@ function TimelinePanel() {
               onClick={() => setActive(index)}
               className={`w-full rounded-2xl border p-4 text-left transition ${
                 active === index
-                  ? "border-slate-900 bg-slate-950 text-white"
-                  : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                  ? 'border-slate-900 bg-slate-950 text-white'
+                  : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
               }`}
             >
               <div className="flex items-center justify-between gap-3">
                 <span className="text-sm font-bold">{item.date}</span>
                 <span
                   className={`rounded-full px-3 py-1 text-xs ${
-                    active === index ? "bg-white/15 text-white" : "bg-white text-slate-500"
+                    active === index
+                      ? 'bg-white/15 text-white'
+                      : 'bg-white text-slate-500'
                   }`}
                 >
                   {item.tag}
@@ -321,7 +458,9 @@ function TimelinePanel() {
             exit={{ opacity: 0, y: -12 }}
             className="p-6"
           >
-            <p className="text-base leading-8 text-slate-600">{selected.text}</p>
+            <p className="text-base leading-8 text-slate-600">
+              {selected.text}
+            </p>
             <div className="mt-6 rounded-[1.5rem] bg-slate-50 p-5">
               <div className="mb-4 flex items-center gap-2 font-bold text-slate-900">
                 <Map className="h-5 w-5" />
@@ -348,13 +487,13 @@ function TimelinePanel() {
 function VideoPanel() {
   const [playerStart, setPlayerStart] = useState(0);
   const playerParams = new URLSearchParams({
-    rel: "0",
+    rel: '0',
     start: String(Math.floor(playerStart || 0)),
-    autoplay: playerStart > 0 ? "1" : "0",
+    autoplay: playerStart > 0 ? '1' : '0',
   });
   const playerSrc = dienBienPhu.videoUrl
-    ? `${dienBienPhu.videoUrl.split("?")[0]}?${playerParams.toString()}`
-    : "";
+    ? `${dienBienPhu.videoUrl.split('?')[0]}?${playerParams.toString()}`
+    : '';
 
   return (
     <div className="space-y-6">
@@ -365,21 +504,27 @@ function VideoPanel() {
               key={playerSrc}
               className="aspect-video w-full"
               src={playerSrc}
-              title="Video bài học"
+              title="Lesson video"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
           ) : (
             <div className="flex aspect-video flex-col items-center justify-center bg-[radial-gradient(circle_at_center,_#334155,_#020617_70%)] p-8 text-center text-white">
               <PlayCircle className="h-16 w-16 text-amber-300" />
-              <h3 className="mt-5 text-2xl font-black">Video bài học Điện Biên Phủ</h3>
+              <h3 className="mt-5 text-2xl font-black">
+                Video bài học Điện Biên Phủ
+              </h3>
               <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">
-                Hiện đang dùng placeholder. Khi có video, chỉ cần gắn link iframe hoặc video URL trực tiếp trong FE.
+                Currently using a placeholder. When a video is available, just provide the
+                iframe or direct video URL in the frontend.
               </p>
             </div>
           )}
         </div>
-        <VideoLessonChatPanel youtubeUrl={dienBienPhu.videoUrl} onJumpToTime={(seconds) => setPlayerStart(seconds)} />
+        <VideoLessonChatPanel
+          youtubeUrl={dienBienPhu.videoUrl}
+          onJumpToTime={(seconds) => setPlayerStart(seconds)}
+        />
       </div>
     </div>
   );
@@ -391,27 +536,37 @@ function QuizPanel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
   const [ranking, setRanking] = useState([
-    { name: "Lan", score: 3 },
-    { name: "Minh", score: 2 },
-    { name: "Huy", score: 2 },
+    { name: 'Lan', score: 3 },
+    { name: 'Minh', score: 2 },
+    { name: 'Huy', score: 2 },
   ]);
   const score = useMemo(
-    () => quizQuestions.reduce((sum, q, i) => sum + (answers[i] === q.answer ? 1 : 0), 0),
-    [answers]
+    () =>
+      quizQuestions.reduce(
+        (sum, q, i) => sum + (answers[i] === q.answer ? 1 : 0),
+        0,
+      ),
+    [answers],
   );
-  const currentQuestion = quizQuestions[currentIndex];
+  const currentCâu = quizQuestions[currentIndex];
   const pickedAnswer = answers[currentIndex];
-  const isLastQuestion = currentIndex === quizQuestions.length - 1;
-  const sortedRanking = useMemo(() => [...ranking].sort((a, b) => b.score - a.score), [ranking]);
+  const isLastCâu = currentIndex === quizQuestions.length - 1;
+  const sortedRanking = useMemo(
+    () => [...ranking].sort((a, b) => b.score - a.score),
+    [ranking],
+  );
   const confetti = Array.from({ length: 28 }, (_, index) => ({
     id: index,
     left: `${6 + ((index * 13) % 88)}%`,
     delay: `${(index % 9) * 0.12}s`,
-    color: ["#facc15", "#38bdf8", "#fb7185", "#22c55e", "#a78bfa"][index % 5],
+    color: ['#facc15', '#38bdf8', '#fb7185', '#22c55e', '#a78bfa'][index % 5],
   }));
   const submitQuiz = () => {
     setSubmitted(true);
-    setRanking((prev) => [...prev.filter((item) => item.name !== "Bạn"), { name: "Bạn", score }]);
+    setRanking((prev) => [
+      ...prev.filter((item) => item.name !== 'Bạn'),
+      { name: 'Bạn', score },
+    ]);
   };
   const restartQuiz = () => {
     setStarted(false);
@@ -427,7 +582,8 @@ function QuizPanel() {
           <Trophy className="h-12 w-12 text-amber-300" />
           <h3 className="mt-5 text-3xl font-semibold">Quiz kiểm tra</h3>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
-            Trả lời lần lượt từng câu hỏi. Đến câu cuối, bấm Submit để tính điểm và cập nhật ranking.
+            Answer each question in order. On the last question, click Submit to calculate your score
+            and update the ranking.
           </p>
           <button
             type="button"
@@ -445,9 +601,16 @@ function QuizPanel() {
           </h4>
           <div className="mt-5 grid gap-3">
             {sortedRanking.map((item, index) => (
-              <div key={item.name} className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 text-sm font-medium text-slate-700">
-                <span>#{index + 1} {item.name}</span>
-                <span>{item.score}/{quizQuestions.length}</span>
+              <div
+                key={item.name}
+                className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 text-sm font-medium text-slate-700"
+              >
+                <span>
+                  #{index + 1} {item.name}
+                </span>
+                <span>
+                  {item.score}/{quizQuestions.length}
+                </span>
               </div>
             ))}
           </div>
@@ -463,14 +626,20 @@ function QuizPanel() {
           <span
             key={piece.id}
             className="quiz-confetti"
-            style={{ left: piece.left, animationDelay: piece.delay, backgroundColor: piece.color }}
+            style={{
+              left: piece.left,
+              animationDelay: piece.delay,
+              backgroundColor: piece.color,
+            }}
           />
         ))}
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
           <div>
             <Sparkles className="h-12 w-12 text-amber-300" />
             <h3 className="mt-5 text-4xl font-semibold">Chúc mừng!</h3>
-            <p className="mt-3 text-lg text-slate-200">Bạn đạt {score}/{quizQuestions.length} điểm.</p>
+            <p className="mt-3 text-lg text-slate-200">
+              Bạn đạt {score}/{quizQuestions.length} điểm.
+            </p>
             <button
               type="button"
               onClick={restartQuiz}
@@ -483,9 +652,16 @@ function QuizPanel() {
             <h4 className="text-xl font-semibold">Ranking</h4>
             <div className="mt-5 grid gap-3">
               {sortedRanking.map((item, index) => (
-                <div key={item.name} className={`flex items-center justify-between rounded-2xl p-4 text-sm font-medium ${item.name === "Bạn" ? "bg-amber-300 text-slate-950" : "bg-white/10 text-white"}`}>
-                  <span>#{index + 1} {item.name}</span>
-                  <span>{item.score}/{quizQuestions.length}</span>
+                <div
+                  key={item.name}
+                  className={`flex items-center justify-between rounded-2xl p-4 text-sm font-medium ${item.name === 'Bạn' ? 'bg-amber-300 text-slate-950' : 'bg-white/10 text-white'}`}
+                >
+                  <span>
+                    #{index + 1} {item.name}
+                  </span>
+                  <span>
+                    {item.score}/{quizQuestions.length}
+                  </span>
                 </div>
               ))}
             </div>
@@ -502,16 +678,27 @@ function QuizPanel() {
         <h3 className="mt-4 text-3xl font-semibold">Quiz kiểm tra</h3>
         <div className="mt-8 rounded-[1.5rem] bg-white/10 p-5">
           <p className="text-sm text-slate-300">Tiến độ</p>
-          <p className="mt-2 text-5xl font-semibold">{currentIndex + 1}/{quizQuestions.length}</p>
-          <p className="mt-3 text-sm text-amber-200">Chọn đáp án rồi chuyển sang câu tiếp theo.</p>
+          <p className="mt-2 text-5xl font-semibold">
+            {currentIndex + 1}/{quizQuestions.length}
+          </p>
+          <p className="mt-3 text-sm text-amber-200">
+            Select an answer to continue to the next question.
+          </p>
         </div>
         <div className="mt-5 rounded-[1.5rem] bg-white/10 p-5">
           <p className="text-sm font-medium text-slate-200">Ranking</p>
           <div className="mt-3 grid gap-2">
             {sortedRanking.slice(0, 3).map((item, index) => (
-              <div key={item.name} className="flex justify-between rounded-xl bg-white/10 px-3 py-2 text-sm">
-                <span>#{index + 1} {item.name}</span>
-                <span>{item.score}/{quizQuestions.length}</span>
+              <div
+                key={item.name}
+                className="flex justify-between rounded-xl bg-white/10 px-3 py-2 text-sm"
+              >
+                <span>
+                  #{index + 1} {item.name}
+                </span>
+                <span>
+                  {item.score}/{quizQuestions.length}
+                </span>
               </div>
             ))}
           </div>
@@ -519,8 +706,12 @@ function QuizPanel() {
       </div>
 
       <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
-        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-orange-600">Câu {currentIndex + 1}</p>
-        <h4 className="mt-3 text-2xl font-semibold text-slate-950">{currentQuestion.question}</h4>
+        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-orange-600">
+          Câu {currentIndex + 1}
+        </p>
+        <h4 className="mt-3 text-2xl font-semibold text-slate-950">
+          {currentQuestion.question}
+        </h4>
         <div className="mt-6 grid gap-3 md:grid-cols-2">
           {currentQuestion.options.map((option, optionIndex) => {
             const picked = pickedAnswer === optionIndex;
@@ -528,9 +719,16 @@ function QuizPanel() {
               <button
                 key={option}
                 type="button"
-                onClick={() => setAnswers((prev) => ({ ...prev, [currentIndex]: optionIndex }))}
+                onClick={() =>
+                  setAnswers((prev) => ({
+                    ...prev,
+                    [currentIndex]: optionIndex,
+                  }))
+                }
                 className={`flex min-h-16 items-center justify-between rounded-2xl border p-4 text-left text-sm font-medium transition ${
-                  picked ? "border-slate-950 bg-slate-950 text-white" : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                  picked
+                    ? 'border-slate-950 bg-slate-950 text-white'
+                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                 }`}
               >
                 {option}
@@ -548,7 +746,7 @@ function QuizPanel() {
           >
             Câu trước
           </button>
-          {isLastQuestion ? (
+          {isLastCâu ? (
             <button
               type="button"
               onClick={submitQuiz}
@@ -560,7 +758,11 @@ function QuizPanel() {
           ) : (
             <button
               type="button"
-              onClick={() => setCurrentIndex((index) => Math.min(quizQuestions.length - 1, index + 1))}
+              onClick={() =>
+                setCurrentIndex((index) =>
+                  Math.min(quizQuestions.length - 1, index + 1),
+                )
+              }
               disabled={pickedAnswer === undefined}
               className="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -582,16 +784,21 @@ function ARPanel() {
           Khu vực mô phỏng AR
         </h3>
         <p className="mt-4 leading-8 text-slate-600">
-          Đây là chỗ giữ sẵn để sau này tích hợp mô phỏng AR. Trước mắt FE có nút, layout, trạng thái và nội dung hướng dẫn để người dùng hiểu tính năng này sẽ làm gì.
+          This section is reserved for future AR integration. For now, the frontend includes
+          buttons, layout, state, and guide content so users can understand what
+          this feature will do.
         </p>
         <div className="mt-6 grid gap-3">
           {[
-            "Gắn model 3D địa hình lòng chảo Điện Biên Phủ",
-            "Hiển thị vị trí cứ điểm, đường tiến công và vòng vây",
-            "Cho phép xoay, phóng to, xem từng lớp thông tin",
-            "Sau này tích hợp WebXR hoặc thư viện AR riêng",
+            'Gắn model 3D địa hình lòng chảo Điện Biên Phủ',
+            'Hiển thị vị trí cứ điểm, đường tiến công và vòng vây',
+            'Cho phép xoay, phóng to, xem từng lớp thông tin',
+            'Sau này tích hợp WebXR hoặc thư viện AR riêng',
           ].map((item) => (
-            <div key={item} className="flex gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+            <div
+              key={item}
+              className="flex gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700"
+            >
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
               <span>{item}</span>
             </div>
@@ -618,18 +825,21 @@ function ARPanel() {
   );
 }
 
-function LessonView({ onBack }) {
-  const [tab, setTab] = useState("overview");
+function LessonView({ onBack, user }) {
+  const [tab, setTab] = useState('overview');
   const tabs = [
-    ["overview", "Tổng quan", BookOpen],
-    ["video", "Video", PlayCircle],
-    ["timeline", "Timeline", Clock3],
-    ["quiz", "Quiz", Brain],
-    ["ar", "AR", Boxes],
-    ["gallery", "Vũ khí", Swords],
-    ["ar-editor", "AR Editor", Layers3],
-    ["ai-video", "AI Bot Admin", ShieldUser],
-  ];
+    ['overview', 'Tổng quan', BookOpen],
+    ['video', 'Video', PlayCircle],
+    ['timeline', 'Timeline', Clock3],
+    ['quiz', 'Quiz', Brain],
+    ['ar', 'AR', Boxes],
+    ['gallery', 'Vũ khí', Swords],
+    ['ar-editor', 'AR Editor', Layers3],
+    ['ai-video', 'AI Bot Admin', ShieldUser],
+  ].filter(
+    ([key]) =>
+      user?.role === 'admin' || (key !== 'ar-editor' && key !== 'ai-video'),
+  );
 
   return (
     <div className="min-h-screen bg-slate-100 p-4 text-slate-950 md:p-8">
@@ -649,8 +859,12 @@ function LessonView({ onBack }) {
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
                   {dienBienPhu.subtitle}
                 </p>
-                <h1 className="mt-3 text-4xl font-black md:text-6xl">{dienBienPhu.title}</h1>
-                <p className="mt-5 max-w-3xl text-base leading-8 text-slate-300">{dienBienPhu.summary}</p>
+                <h1 className="mt-3 text-4xl font-black md:text-6xl">
+                  {dienBienPhu.title}
+                </h1>
+                <p className="mt-5 max-w-3xl text-base leading-8 text-slate-300">
+                  {dienBienPhu.summary}
+                </p>
               </div>
               <div className="rounded-[1.5rem] bg-white/10 p-5 backdrop-blur">
                 <p className="text-sm text-slate-300">Tiến độ bài học</p>
@@ -660,21 +874,25 @@ function LessonView({ onBack }) {
           </div>
 
           <div className="border-b border-slate-200 bg-white p-3">
-            <div className="flex flex-wrap justify-center gap-2 md:flex-nowrap md:justify-start md:overflow-x-auto">
+            <div className="flex flex-wrap justify-center gap-2 md:flex-nowrap md:justify-center md:overflow-x-auto">
               {tabs.map(([key, label, Icon]) => (
                 <button
                   key={key}
                   onClick={() => setTab(key)}
                   className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-bold transition md:shrink-0 ${
-                    tab === key ? "bg-slate-950 text-white" : "text-slate-600 hover:bg-slate-100"
+                    tab === key
+                      ? 'bg-slate-950 text-white'
+                      : 'text-slate-600 hover:bg-slate-100'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
                   {label}
-                  {key === "ai-video" ? (
+                  {key === 'ai-video' || key === 'ar-editor' ? (
                     <span
                       className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] ${
-                        tab === key ? "bg-amber-300 text-slate-950" : "bg-slate-200 text-slate-700"
+                        tab === key
+                          ? 'bg-amber-300 text-slate-950'
+                          : 'bg-slate-200 text-slate-700'
                       }`}
                     >
                       Admin
@@ -695,15 +913,20 @@ function LessonView({ onBack }) {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2 }}
             >
-              {tab === "overview" ? (
+              {tab === 'overview' ? (
                 <div className="grid gap-6 lg:grid-cols-[1fr_0.85fr]">
                   <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-200">
                     <h2 className="text-2xl font-black">Mục tiêu bài học</h2>
                     <div className="mt-5 grid gap-3">
                       {dienBienPhu.learningGoals.map((goal) => (
-                        <div key={goal} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4">
+                        <div
+                          key={goal}
+                          className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4"
+                        >
                           <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-                          <span className="font-medium text-slate-700">{goal}</span>
+                          <span className="font-medium text-slate-700">
+                            {goal}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -712,10 +935,10 @@ function LessonView({ onBack }) {
                     <h2 className="text-2xl font-black">Lộ trình học</h2>
                     <div className="mt-5 space-y-4">
                       {[
-                        ["1", "Xem video tổng quan"],
-                        ["2", "Theo dõi timeline"],
-                        ["3", "Khám phá mô phỏng AR"],
-                        ["4", "Làm quiz củng cố"],
+                        ['1', 'Xem video tổng quan'],
+                        ['2', 'Theo dõi timeline'],
+                        ['3', 'Khám phá mô phỏng AR'],
+                        ['4', 'Làm quiz củng cố'],
                       ].map(([step, text]) => (
                         <div key={step} className="flex items-center gap-4">
                           <div className="grid h-10 w-10 place-items-center rounded-full bg-slate-950 font-bold text-white">
@@ -728,13 +951,13 @@ function LessonView({ onBack }) {
                   </div>
                 </div>
               ) : null}
-              {tab === "video" ? <VideoPanel /> : null}
-              {tab === "timeline" ? <TimelinePanel /> : null}
-              {tab === "ai-video" ? <VideoAITutorPage /> : null}
-              {tab === "quiz" ? <QuizPanel /> : null}
-              {tab === "ar" ? <ARPanel /> : null}
-              {tab === "gallery" ? <WeaponGalleryPanel /> : null}
-              {tab === "ar-editor" ? <TimelineEditor /> : null}
+              {tab === 'video' ? <VideoPanel /> : null}
+              {tab === 'timeline' ? <TimelinePanel /> : null}
+              {tab === 'ai-video' ? <VideoAITutorPage /> : null}
+              {tab === 'quiz' ? <QuizPanel /> : null}
+              {tab === 'ar' ? <ARPanel /> : null}
+              {tab === 'gallery' ? <WeaponGalleryPanel /> : null}
+              {tab === 'ar-editor' ? <TimelineEditor /> : null}
             </motion.div>
           </AnimatePresence>
         </main>
@@ -743,10 +966,10 @@ function LessonView({ onBack }) {
   );
 }
 
-function Dashboard({ onOpenLesson }) {
-  const [search, setSearch] = useState("");
+function Dashboard({ onOpenLesson, user, onLogout }) {
+  const [search, setSearch] = useState('');
   const filtered = courses.filter((course) =>
-    course.title.toLowerCase().includes(search.toLowerCase())
+    course.title.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -758,7 +981,9 @@ function Dashboard({ onOpenLesson }) {
               <BookOpen className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-500">History AR Learning</p>
+              <p className="text-sm font-semibold text-slate-500">
+                History AR Learning
+              </p>
               <h2 className="text-xl font-black">Lịch sử sống động</h2>
             </div>
           </div>
@@ -771,23 +996,46 @@ function Dashboard({ onOpenLesson }) {
               className="w-full rounded-full border border-slate-200 bg-white py-3 pl-12 pr-4 text-sm outline-none transition focus:border-slate-400"
             />
           </div>
+          <div className="ml-auto inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">
+            <User className="h-4 w-4" />
+            <span>{user?.name}</span>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] uppercase tracking-[0.08em] text-slate-600">
+              {user?.role}
+            </span>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="ml-1 inline-flex h-7 w-7 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+              title="Đăng xuất"
+              aria-label="Đăng xuất"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </nav>
 
-        <Hero onStart={() => onOpenLesson("dien-bien-phu")} />
+        <Hero onStart={() => onOpenLesson('dien-bien-phu')} />
 
         <section>
           <div className="mb-5 flex items-end justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-600">Khóa học</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-orange-600">
+                Khóa học
+              </p>
               <h2 className="mt-2 text-3xl font-black">Chọn chủ đề lịch sử</h2>
             </div>
             <p className="hidden max-w-md text-right text-sm leading-6 text-slate-500 md:block">
-              Mỗi khóa học có thể đại diện cho một giai đoạn, một nhân vật, một chiến dịch hoặc một trận đánh.
+              Each course can represent a period, a character, a
+              campaign, or a battle.
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((course) => (
-              <CourseCard key={course.id} course={course} onOpen={onOpenLesson} />
+              <CourseCard
+                key={course.id}
+                course={course}
+                onOpen={onOpenLesson}
+              />
             ))}
           </div>
         </section>
@@ -797,11 +1045,23 @@ function Dashboard({ onOpenLesson }) {
 }
 
 export default function HistoryARLearningApp() {
-  const [screen, setScreen] = useState("dashboard");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [screen, setScreen] = useState('dashboard');
 
-  return screen === "lesson" ? (
-    <LessonView onBack={() => setScreen("dashboard")} />
+  if (!currentUser) {
+    return <LoginScreen onLogin={setCurrentUser} />;
+  }
+
+  return screen === 'lesson' ? (
+    <LessonView onBack={() => setScreen('dashboard')} user={currentUser} />
   ) : (
-    <Dashboard onOpenLesson={() => setScreen("lesson")} />
+    <Dashboard
+      onOpenLesson={() => setScreen('lesson')}
+      user={currentUser}
+      onLogout={() => {
+        setCurrentUser(null);
+        setScreen('dashboard');
+      }}
+    />
   );
 }
