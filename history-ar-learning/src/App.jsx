@@ -515,8 +515,8 @@ function VideoPanel() {
                 Video bài học Điện Biên Phủ
               </h3>
               <p className="mt-3 max-w-md text-sm leading-6 text-slate-300">
-                Currently using a placeholder. When a video is available, just provide the
-                iframe or direct video URL in the frontend.
+                Currently using a placeholder. When a video is available, just
+                provide the iframe or direct video URL in the frontend.
               </p>
             </div>
           )}
@@ -548,9 +548,9 @@ function QuizPanel() {
       ),
     [answers],
   );
-  const currentCâu = quizQuestions[currentIndex];
+  const currentQuestion = quizQuestions[currentIndex];
   const pickedAnswer = answers[currentIndex];
-  const isLastCâu = currentIndex === quizQuestions.length - 1;
+  const isLastQuestion = currentIndex === quizQuestions.length - 1;
   const sortedRanking = useMemo(
     () => [...ranking].sort((a, b) => b.score - a.score),
     [ranking],
@@ -582,8 +582,8 @@ function QuizPanel() {
           <Trophy className="h-12 w-12 text-amber-300" />
           <h3 className="mt-5 text-3xl font-semibold">Quiz kiểm tra</h3>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
-            Answer each question in order. On the last question, click Submit to calculate your score
-            and update the ranking.
+            Answer each question in order. On the last question, click Submit to
+            calculate your score and update the ranking.
           </p>
           <button
             type="button"
@@ -746,7 +746,7 @@ function QuizPanel() {
           >
             Câu trước
           </button>
-          {isLastCâu ? (
+          {isLastQuestion ? (
             <button
               type="button"
               onClick={submitQuiz}
@@ -784,9 +784,9 @@ function ARPanel() {
           Khu vực mô phỏng AR
         </h3>
         <p className="mt-4 leading-8 text-slate-600">
-          This section is reserved for future AR integration. For now, the frontend includes
-          buttons, layout, state, and guide content so users can understand what
-          this feature will do.
+          This section is reserved for future AR integration. For now, the
+          frontend includes buttons, layout, state, and guide content so users
+          can understand what this feature will do.
         </p>
         <div className="mt-6 grid gap-3">
           {[
@@ -1024,10 +1024,6 @@ function Dashboard({ onOpenLesson, user, onLogout }) {
               </p>
               <h2 className="mt-2 text-3xl font-black">Chọn chủ đề lịch sử</h2>
             </div>
-            <p className="hidden max-w-md text-right text-sm leading-6 text-slate-500 md:block">
-              Each course can represent a period, a character, a
-              campaign, or a battle.
-            </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             {filtered.map((course) => (

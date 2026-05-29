@@ -11,8 +11,8 @@
     {
       "id": "him-lam",
       "label": "Him Lam",
-      "x": 45,
-      "y": 60,
+      "x": 35.8,
+      "y": 61.5,
       "z": 0,
       "scale": 0.3,
       "color": "#ef4444",
@@ -117,7 +117,8 @@
             "offsetY": 0,
             "offsetZ": 0,
             "followPathRotation": true,
-            "showLocalAxes": false
+            "showLocalAxes": false,
+            "animationSpeed": 1
           },
           "rotation": 0,
           "rotationX": 90,
@@ -133,7 +134,6 @@
           "id": "cannon-after-airplane",
           "type": "model",
           "label": "Canon di sau may bay",
-          "showLabel": false,
           "assetPath": "/ar-assets/cannon.glb",
           "startAt": 7.2,
           "duration": 17,
@@ -162,19 +162,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": true,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": true,
             "showLocalAxes": false,
-            "holdAfterEnd": true
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "paratrooper-1",
           "type": "model",
           "label": "Linh nhay du 1",
-          "showLabel": false,
           "assetPath": "/ar-assets/paratrooper.glb",
           "startAt": 5,
           "duration": 6.5,
@@ -203,18 +206,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
-          }
+            "followPathRotation": false,
+            "showLocalAxes": false,
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "paratrooper-2",
           "type": "model",
           "label": "Linh nhay du 2",
-          "showLabel": false,
           "assetPath": "/ar-assets/paratrooper.glb",
           "startAt": 5.5,
           "duration": 6.5,
@@ -243,18 +250,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
-          }
+            "followPathRotation": false,
+            "showLocalAxes": false,
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "paratrooper-3",
           "type": "model",
           "label": "Linh nhay du 3",
-          "showLabel": false,
           "assetPath": "/ar-assets/paratrooper.glb",
           "startAt": 6,
           "duration": 6.5,
@@ -283,18 +294,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
-          }
+            "followPathRotation": false,
+            "showLocalAxes": false,
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "paratrooper-4",
           "type": "model",
           "label": "Linh nhay du 4",
-          "showLabel": false,
           "assetPath": "/ar-assets/paratrooper.glb",
           "startAt": 6.5,
           "duration": 6.5,
@@ -323,18 +338,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
-          }
+            "followPathRotation": false,
+            "showLocalAxes": false,
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "paratrooper-5",
           "type": "model",
           "label": "Linh nhay du 5",
-          "showLabel": false,
           "assetPath": "/ar-assets/paratrooper.glb",
           "startAt": 5.2,
           "duration": 6.5,
@@ -363,18 +382,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
-          }
+            "followPathRotation": false,
+            "showLocalAxes": false,
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "paratrooper-6",
           "type": "model",
           "label": "Linh nhay du 6",
-          "showLabel": false,
           "assetPath": "/ar-assets/paratrooper.glb",
           "startAt": 5.7,
           "duration": 6.5,
@@ -403,18 +426,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
-          }
+            "followPathRotation": false,
+            "showLocalAxes": false,
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "paratrooper-7",
           "type": "model",
           "label": "Linh nhay du 7",
-          "showLabel": false,
           "assetPath": "/ar-assets/paratrooper.glb",
           "startAt": 6.2,
           "duration": 6.5,
@@ -443,18 +470,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
-          }
+            "followPathRotation": false,
+            "showLocalAxes": false,
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "paratrooper-8",
           "type": "model",
           "label": "Linh nhay du 8",
-          "showLabel": false,
           "assetPath": "/ar-assets/paratrooper.glb",
           "startAt": 6.7,
           "duration": 6.5,
@@ -483,18 +514,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
-          }
+            "followPathRotation": false,
+            "showLocalAxes": false,
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "paratrooper-9",
           "type": "model",
           "label": "Linh nhay du 9",
-          "showLabel": false,
           "assetPath": "/ar-assets/paratrooper.glb",
           "startAt": 7,
           "duration": 6.5,
@@ -523,18 +558,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
-          }
+            "followPathRotation": false,
+            "showLocalAxes": false,
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "paratrooper-10",
           "type": "model",
           "label": "Linh nhay du 10",
-          "showLabel": false,
           "assetPath": "/ar-assets/paratrooper.glb",
           "startAt": 7.3,
           "duration": 6.5,
@@ -563,12 +602,17 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
-            "showLocalAxes": false
-          }
+            "followPathRotation": false,
+            "showLocalAxes": false,
+            "animationSpeed": 1
+          },
+          "showLabel": false
         }
       ],
       "narration": "Phat sau khi nguoi dung dong cua so tran Him Lam, dan sang moc tiep theo.",
@@ -587,7 +631,6 @@
           "id": "opening-explosion-moc1-moc2-1",
           "type": "model",
           "label": "No dau doan 1",
-          "showLabel": false,
           "assetPath": "/ar-assets/explosion.glb",
           "startAt": 0.2,
           "duration": 1.7,
@@ -597,6 +640,7 @@
             "y": 60,
             "z": 0.04
           },
+          "path": [],
           "transform": {
             "z": 0.004,
             "scale": 0.045,
@@ -604,19 +648,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "opening-explosion-moc1-moc2-2",
           "type": "model",
           "label": "No dau doan 2",
-          "showLabel": false,
           "assetPath": "/ar-assets/explosion.glb",
           "startAt": 0.6,
           "duration": 2.1,
@@ -626,6 +673,7 @@
             "y": 62,
             "z": 0.04
           },
+          "path": [],
           "transform": {
             "z": 0.004,
             "scale": 0.045,
@@ -633,19 +681,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "opening-explosion-moc1-moc2-3",
           "type": "model",
           "label": "No dau doan 3",
-          "showLabel": false,
           "assetPath": "/ar-assets/explosion.glb",
           "startAt": 1,
           "duration": 2.5,
@@ -655,6 +706,7 @@
             "y": 64.5,
             "z": 0.04
           },
+          "path": [],
           "transform": {
             "z": 0.004,
             "scale": 0.045,
@@ -662,19 +714,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "attack-arrow-moc1-moc2",
           "type": "model",
           "label": "Mui ten tien cong sang moc 2",
-          "showLabel": false,
           "assetPath": "/ar-assets/arrow.glb",
           "startAt": 16,
           "duration": 8,
@@ -684,6 +739,7 @@
             "y": 74.8,
             "z": 0.055
           },
+          "path": [],
           "transform": {
             "z": 0.055,
             "scale": 3,
@@ -691,19 +747,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "defense-fence-moc1-moc2",
           "type": "model",
           "label": "Hang rao phong ngu",
-          "showLabel": false,
           "assetPath": "/ar-assets/fence.glb",
           "startAt": 25,
           "duration": 18,
@@ -713,6 +772,7 @@
             "y": 66,
             "z": 0.035
           },
+          "path": [],
           "transform": {
             "z": 0.035,
             "scale": 0.22,
@@ -720,19 +780,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "running-soldier-moc1-moc2-1",
           "type": "model",
           "label": "Linh xung phong 1",
-          "showLabel": false,
           "assetPath": "/ar-assets/running-soldier.glb",
           "startAt": 33.2,
           "duration": 6.8,
@@ -741,20 +804,6 @@
             "x": 33.8,
             "y": 83.4,
             "z": 0.045
-          },
-          "transform": {
-            "z": 0.045,
-            "scale": 0.3,
-            "yawOffset": 0,
-            "modelRotationX": 90,
-            "modelRotationY": 0,
-            "modelRotationZ": 0,
-            "followPathRotation": true,
-            "offsetX": 0,
-            "offsetY": 0,
-            "offsetZ": 0,
-            "showLocalAxes": false,
-            "animationSpeed": 2
           },
           "path": [
             {
@@ -767,13 +816,30 @@
               "y": 80.9,
               "z": 0.045
             }
-          ]
+          ],
+          "transform": {
+            "z": 0.045,
+            "scale": 0.3,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "followPathRotation": true,
+            "showLocalAxes": false,
+            "animationSpeed": 2
+          },
+          "showLabel": false
         },
         {
           "id": "running-soldier-moc1-moc2-2",
           "type": "model",
           "label": "Linh xung phong 2",
-          "showLabel": false,
           "assetPath": "/ar-assets/running-soldier.glb",
           "startAt": 33.8,
           "duration": 6.6,
@@ -782,20 +848,6 @@
             "x": 37.6,
             "y": 78.2,
             "z": 0.045
-          },
-          "transform": {
-            "z": 0.045,
-            "scale": 0.3,
-            "yawOffset": 0,
-            "modelRotationX": 90,
-            "modelRotationY": 0,
-            "modelRotationZ": 0,
-            "followPathRotation": true,
-            "offsetX": 0,
-            "offsetY": 0,
-            "offsetZ": 0,
-            "showLocalAxes": false,
-            "animationSpeed": 2
           },
           "path": [
             {
@@ -808,13 +860,30 @@
               "y": 80.1,
               "z": 0.045
             }
-          ]
+          ],
+          "transform": {
+            "z": 0.045,
+            "scale": 0.3,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "followPathRotation": true,
+            "showLocalAxes": false,
+            "animationSpeed": 2
+          },
+          "showLabel": false
         },
         {
           "id": "running-soldier-moc1-moc2-3",
           "type": "model",
           "label": "Linh xung phong 3",
-          "showLabel": false,
           "assetPath": "/ar-assets/running-soldier.glb",
           "startAt": 34.4,
           "duration": 6.4,
@@ -823,20 +892,6 @@
             "x": 24.6,
             "y": 82.8,
             "z": 0.045
-          },
-          "transform": {
-            "z": 0.045,
-            "scale": 0.3,
-            "yawOffset": 0,
-            "modelRotationX": 90,
-            "modelRotationY": 0,
-            "modelRotationZ": 0,
-            "followPathRotation": true,
-            "offsetX": 0,
-            "offsetY": 0,
-            "offsetZ": 0,
-            "showLocalAxes": false,
-            "animationSpeed": 2
           },
           "path": [
             {
@@ -849,13 +904,30 @@
               "y": 80.6,
               "z": 0.045
             }
-          ]
+          ],
+          "transform": {
+            "z": 0.045,
+            "scale": 0.3,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "followPathRotation": true,
+            "showLocalAxes": false,
+            "animationSpeed": 2
+          },
+          "showLabel": false
         },
         {
           "id": "running-soldier-moc1-moc2-4",
           "type": "model",
           "label": "Linh xung phong 4",
-          "showLabel": false,
           "assetPath": "/ar-assets/running-soldier.glb",
           "startAt": 35,
           "duration": 6.2,
@@ -864,20 +936,6 @@
             "x": 26,
             "y": 76.5,
             "z": 0.045
-          },
-          "transform": {
-            "z": 0.045,
-            "scale": 0.3,
-            "yawOffset": 0,
-            "modelRotationX": 90,
-            "modelRotationY": 0,
-            "modelRotationZ": 0,
-            "followPathRotation": true,
-            "offsetX": 0,
-            "offsetY": 0,
-            "offsetZ": 0,
-            "showLocalAxes": false,
-            "animationSpeed": 2
           },
           "path": [
             {
@@ -890,13 +948,30 @@
               "y": 79.8,
               "z": 0.045
             }
-          ]
+          ],
+          "transform": {
+            "z": 0.045,
+            "scale": 0.3,
+            "yawOffset": 0,
+            "modelRotationX": 90,
+            "modelRotationY": 0,
+            "modelRotationZ": 0,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
+            "offsetX": 0,
+            "offsetY": 0,
+            "offsetZ": 0,
+            "followPathRotation": true,
+            "showLocalAxes": false,
+            "animationSpeed": 2
+          },
+          "showLabel": false
         },
         {
           "id": "tent-fire-moc1-moc2-1",
           "type": "model",
           "label": "Leu bi ban chay 1",
-          "showLabel": false,
           "assetPath": "/ar-assets/explosion.glb",
           "startAt": 34,
           "duration": 2.4,
@@ -906,6 +981,7 @@
             "y": 69.5,
             "z": 0.04
           },
+          "path": [],
           "transform": {
             "z": 0.004,
             "scale": 0.045,
@@ -913,19 +989,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "tent-fire-moc1-moc2-2",
           "type": "model",
           "label": "Leu bi ban chay 2",
-          "showLabel": false,
           "assetPath": "/ar-assets/explosion.glb",
           "startAt": 35.2,
           "duration": 2.4,
@@ -935,6 +1014,7 @@
             "y": 71,
             "z": 0.04
           },
+          "path": [],
           "transform": {
             "z": 0.004,
             "scale": 0.045,
@@ -942,19 +1022,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "tent-fire-moc1-moc2-3",
           "type": "model",
           "label": "Leu bi ban chay 3",
-          "showLabel": false,
           "assetPath": "/ar-assets/explosion.glb",
           "startAt": 36.4,
           "duration": 2.4,
@@ -964,6 +1047,7 @@
             "y": 70.5,
             "z": 0.04
           },
+          "path": [],
           "transform": {
             "z": 0.004,
             "scale": 0.045,
@@ -971,19 +1055,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "french-cannon-muong-thanh",
           "type": "model",
           "label": "Phao Phap ban tra",
-          "showLabel": false,
           "assetPath": "/ar-assets/cannon.glb",
           "startAt": 41,
           "duration": 13.2,
@@ -993,6 +1080,7 @@
             "y": 80.5,
             "z": 0.035
           },
+          "path": [],
           "transform": {
             "z": 0.035,
             "scale": 0.24,
@@ -1000,19 +1088,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "counter-fire-moc1-moc2-1",
           "type": "model",
           "label": "Phao kich ban tra 1",
-          "showLabel": false,
           "assetPath": "/ar-assets/explosion.glb",
           "startAt": 42,
           "duration": 2.8,
@@ -1022,6 +1113,7 @@
             "y": 67,
             "z": 0.04
           },
+          "path": [],
           "transform": {
             "z": 0.004,
             "scale": 0.055,
@@ -1029,19 +1121,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "counter-fire-moc1-moc2-2",
           "type": "model",
           "label": "Phao kich ban tra 2",
-          "showLabel": false,
           "assetPath": "/ar-assets/explosion.glb",
           "startAt": 44.5,
           "duration": 3,
@@ -1051,6 +1146,7 @@
             "y": 68.5,
             "z": 0.04
           },
+          "path": [],
           "transform": {
             "z": 0.004,
             "scale": 0.055,
@@ -1058,19 +1154,22 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         },
         {
           "id": "counter-fire-moc1-moc2-3",
           "type": "model",
           "label": "Phao kich ban tra 3",
-          "showLabel": false,
           "assetPath": "/ar-assets/explosion.glb",
           "startAt": 47,
           "duration": 3,
@@ -1080,6 +1179,7 @@
             "y": 65.5,
             "z": 0.04
           },
+          "path": [],
           "transform": {
             "z": 0.004,
             "scale": 0.055,
@@ -1087,13 +1187,17 @@
             "modelRotationX": 90,
             "modelRotationY": 0,
             "modelRotationZ": 0,
-            "followPathRotation": false,
+            "rotationX": 0,
+            "rotationY": 0,
+            "rotationZ": 0,
             "offsetX": 0,
             "offsetY": 0,
             "offsetZ": 0,
+            "followPathRotation": false,
             "showLocalAxes": false,
-            "holdAfterEnd": false
-          }
+            "animationSpeed": 1
+          },
+          "showLabel": false
         }
       ],
       "narration": "Phat sau khi nguoi dung dong video Him Lam, dan sang moc Muong Thanh.",
